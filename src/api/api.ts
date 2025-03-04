@@ -1,6 +1,6 @@
 import axios from "axios";
 import { IProduct } from "../interfaces/Iproduct";
-
+import Cookies from "js-cookie";
 const API_BASE_URL =
   "https://wordpress-x84owsw4g8wswwgcw8sc4c04.callfornia.com/";
 
@@ -13,7 +13,8 @@ const apiClient = axios.create({
 
 // Add request interceptor for debugging
 apiClient.interceptors.request.use((config) => {
-  const accessToken = localStorage.getItem("accessToken");
+  // const accessToken = localStorage.getItem("accessToken");
+  const accessToken = Cookies.get("accessToken");
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
@@ -23,8 +24,9 @@ apiClient.interceptors.request.use((config) => {
 // Add response interceptor for debugging
 apiClient.interceptors.response.use((response) => {
   if (response.status === 401 && response.config.url !== "/users/login") {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    // localStorage.removeItem("accessToken");
+    // localStorage.removeItem("refreshToken");
+    Cookies.remove("accessToken");
     window.location.href = "/login";
   }
   return response;
@@ -58,8 +60,9 @@ export const authAPI = {
     return response;
   },
   logout: async () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    // localStorage.removeItem("accessToken");
+    // localStorage.removeItem("refreshToken");
+    Cookies.remove("accessToken");
   },
 };
 

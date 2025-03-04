@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { authAPI } from "../../api/api";
-
+import Cookies from "js-cookie";
 const Login = () => {
   const handlerLogin = async () => {
     console.log(email, password);
-    window.location.href = "/products";
+    // window.location.href = "/products";
     try {
       const response = await authAPI.login({ email, password });
       console.log(response.data.data.jwt);
       if (response.status === 200) {
-        localStorage.setItem("accessToken", response.data.data.jwt);
+        // localStorage.setItem("accessToken", response.data.data.jwt);
+        Cookies.set("accessToken", response.data.data.jwt);
         // window.location.href = "/products";
       }
     } catch (error) {
