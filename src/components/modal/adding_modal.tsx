@@ -26,7 +26,7 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
   const [price, setPrice] = useState<number>();
   const [imageURL, setImageURL] = useState("");
   const [inventory, setInventory] = useState<number>();
-  const [rating, setRating] = useState(0);
+  // const [rating, setRating] = useState(0);
 
   const handleCreateProduct = async () => {
     try {

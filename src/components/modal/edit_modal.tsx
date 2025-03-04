@@ -28,7 +28,7 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
   const [price, setPrice] = useState(product.price);
   const [imageURL, setImageURL] = useState(product.imageURL);
   const [inventory, setInventory] = useState(product.inventory);
-  const [rating, setRating] = useState(product.rating);
+  // const [rating, setRating] = useState(product.rating);
 
   const handleCreateProduct = async () => {
     try {

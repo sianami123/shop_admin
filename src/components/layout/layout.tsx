@@ -7,7 +7,7 @@ type LayoutProps = {
 
 const Layout = ({ children }: LayoutProps) => {
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    // const token = localStorage.getItem("accessToken");
     // if (!token) {
     //   window.location.href = "/login";
     // }
