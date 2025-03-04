@@ -71,7 +71,7 @@ export const productsAPI = {
         per_page: perPage,
       },
     });
-    console.log(response.data);
+    console.log(response);
     return response;
   },
   createProduct: async ({ title, price, imageURL, inventory }: IProduct) => {
