@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 const Sidebar = () => {
   const navigate = useNavigate();
   let pathArray = window.location.pathname;
-  console.log(pathArray);
   return (
     <div className=" h-full bg-slate-700 flex flex-col gap-2 p-5">
       <ul>

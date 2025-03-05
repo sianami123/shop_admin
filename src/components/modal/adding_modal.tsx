@@ -1,20 +1,19 @@
 import {
   Button,
-  Input,
-  InputGroup,
-  InputLeftAddon,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-} from "@chakra-ui/react";
+  TextField,
+  InputAdornment,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Stack,
+} from "@mui/material";
 import { useDispatch } from "react-redux";
 import { useState } from "react";
 import { addProduct } from "../../redux/reducers/productsReducer";
 import axios from "axios";
+
 interface IPropsModal {
   isOpen: boolean;
   onClose: () => void;
@@ -26,7 +25,6 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
   const [price, setPrice] = useState<number>();
   const [imageURL, setImageURL] = useState("");
   const [inventory, setInventory] = useState<number>();
-  // const [rating, setRating] = useState(0);
 
   const handleCreateProduct = async () => {
     try {
@@ -52,60 +50,57 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
       console.log(e);
     }
   };
-  return (
-    <>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Add Product</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Input
-              variant="filled"
-              placeholder="Products name"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-            <Input
-              type="number"
-              variant="filled"
-              placeholder="Products price"
-              value={price}
-              onChange={(e) => setPrice(Number(e.target.value))}
-            />
-            <Input
-              type="number"
-              variant="filled"
-              placeholder="Products inventory"
-              value={inventory}
-              onChange={(e) => setInventory(Number(e.target.value))}
-            />
-            <InputGroup size="sm">
-              <InputLeftAddon>https://</InputLeftAddon>
-              <Input
-                placeholder="mysite"
-                value={imageURL}
-                onChange={(e) => setImageURL(e.target.value)}
-              />
-            </InputGroup>
-          </ModalBody>
 
-          <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={onClose}>
-              Close
-            </Button>
-            <Button
-              onClick={() => {
-                handleCreateProduct();
-              }}
-              variant="ghost"
-            >
-              create product
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </>
+  return (
+    <Dialog open={isOpen} onClose={onClose}>
+      <DialogTitle>Add Product</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          <TextField
+            fullWidth
+            label="Product name"
+            variant="outlined"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <TextField
+            fullWidth
+            type="number"
+            label="Product price"
+            variant="outlined"
+            value={price}
+            onChange={(e) => setPrice(Number(e.target.value))}
+          />
+          <TextField
+            fullWidth
+            type="number"
+            label="Product inventory"
+            variant="outlined"
+            value={inventory}
+            onChange={(e) => setInventory(Number(e.target.value))}
+          />
+          <TextField
+            fullWidth
+            label="Image URL"
+            variant="outlined"
+            placeholder="https://via.placeholder.com/150"
+            value={imageURL}
+            onChange={(e) => setImageURL(e.target.value)}
+          />
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          variant="contained"
+          onClick={handleCreateProduct}
+          color="primary"
+        >
+          Create Product
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
+
 export default AddingModal;

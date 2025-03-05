@@ -13,25 +13,22 @@ import EditModal from "../modal/edit_modal";
 import axios from "axios";
 
 import {
-  Heading,
+  Typography,
   Stack,
   Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  useDisclosure,
-} from "@chakra-ui/react";
-import { PaginationRoot } from "../../components/ui/pagination";
-import { LinkButton } from "../ui/link-button";
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  IconButton,
+  Button,
+} from "@mui/material";
 
 export default function Products() {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [open, setOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<IProduct>();
   const [error, setError] = useState<string | null>(null);
-  // const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const products = useSelector((state: any) => state.products);
 
@@ -39,7 +36,6 @@ export default function Products() {
   const pageSize = 5;
 
   async function fetchProducts() {
-    // setLoading(true);
     setError(null);
     try {
       const response = await productsAPI.getProducts();
@@ -55,8 +51,6 @@ export default function Products() {
       dispatch(setProducts(transformedProducts));
     } catch (error: any) {
       setError(error.message);
-    } finally {
-      // setLoading(false);
     }
   }
 
@@ -68,13 +62,13 @@ export default function Products() {
     setSelectedProduct(product);
     setIsEditMode(true);
     if (selectedProduct) {
-      onOpen();
+      setOpen(true);
     }
   };
 
   const handleAddProduct = () => {
     setIsEditMode(false);
-    onOpen();
+    setOpen(true);
   };
 
   const handleDeleteProduct = async (id: string) => {
@@ -91,91 +85,87 @@ export default function Products() {
   };
 
   return (
-    <Layout>
-      <Stack width="full" gap="5">
-        <div className="flex justify-between items-center">
-          <Heading size="xl">Products</Heading>
-          <LinkButton onClick={handleAddProduct}>Add Product</LinkButton>
-        </div>
+    <>
+      <Layout>
+        <Stack spacing={2} width="100%">
+          <div className="flex justify-between items-center">
+            <Typography variant="h4">Products</Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleAddProduct}
+            >
+              Add Product
+            </Button>
+          </div>
 
-        {/* {loading && <div>Loading products...</div>} */}
+          {error && (
+            <Typography color="error">
+              Error loading products: {error}
+            </Typography>
+          )}
 
-        {error && (
-          <div className="text-red-500">Error loading products: {error}</div>
-        )}
-
-        {/* {!loading && !error && products.length === 0 && (
-          <div>No products found</div>
-        )} */}
-
-        {products.length > 0 && (
-          <Table size="sm" variant="simple">
-            <Thead>
-              <Tr>
-                <Th>Image</Th>
-                <Th>Name</Th>
-                <Th isNumeric>Price</Th>
-                <Th isNumeric>Rating</Th>
-                <Th isNumeric>Action</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {products?.map((item: IProduct) => (
-                <Tr key={item.id}>
-                  <Td>
-                    <img
-                      className="min-h-20 w-20 p-2 rounded-lg"
-                      src={item.imageURL}
-                      alt={item.title}
-                    />
-                  </Td>
-                  <Td>{item.title}</Td>
-                  <Td isNumeric>
-                    $
-                    {typeof item.price === "number"
-                      ? item.price.toFixed(2)
-                      : "0.00"}
-                  </Td>
-                  <Td isNumeric>{item.rating}</Td>
-                  <Td isNumeric>
-                    <button
-                      onClick={() => handleDeleteProduct(item.id!)}
-                      className="bg-red-700 rounded-lg p-2 mx-2"
-                    >
-                      <MdDeleteForever />
-                    </button>
-                    <button
-                      onClick={() => handleEditProduct(item)}
-                      className="bg-yellow-500 rounded-lg p-2"
-                    >
-                      <MdOutlineEditNote />
-                    </button>
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        )}
-
-        <PaginationRoot
-          count={products?.length || 0}
-          pageSize={pageSize}
-          page={page}
-          onPageChange={setPage}
-        />
-      </Stack>
-
+          {products.length > 0 && (
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Image</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell align="right">Price</TableCell>
+                  <TableCell align="right">Rating</TableCell>
+                  <TableCell align="right">Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {products?.map((item: IProduct) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      <img
+                        className="min-h-20 w-20 p-2 rounded-lg"
+                        src={item.imageURL}
+                        alt={item.title}
+                      />
+                    </TableCell>
+                    <TableCell>{item.title}</TableCell>
+                    <TableCell align="right">
+                      $
+                      {typeof item.price === "number"
+                        ? item.price.toFixed(2)
+                        : "0.00"}
+                    </TableCell>
+                    <TableCell align="right">{item.rating}</TableCell>
+                    <TableCell align="right">
+                      <IconButton
+                        color="error"
+                        onClick={() => handleDeleteProduct(item.id!)}
+                      >
+                        <MdDeleteForever />
+                      </IconButton>
+                      <IconButton
+                        color="warning"
+                        onClick={() => handleEditProduct(item)}
+                      >
+                        <MdOutlineEditNote />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </Stack>
+      </Layout>
       {isEditMode ? (
         selectedProduct && (
           <EditModal
-            onClose={onClose}
-            isOpen={isOpen}
+            onClose={() => setOpen(false)}
+            isOpen={open}
             product={selectedProduct}
           />
         )
       ) : (
-        <AddingModal onClose={onClose} isOpen={isOpen} />
+        <AddingModal onClose={() => setOpen(false)} isOpen={open} />
       )}
-    </Layout>
+    </>
   );
 }

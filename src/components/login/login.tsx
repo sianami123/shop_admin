@@ -11,7 +11,7 @@ const Login = () => {
       if (response.status === 200) {
         // localStorage.setItem("accessToken", response.data.data.jwt);
         Cookies.set("accessToken", response.data.data.jwt);
-        // window.location.href = "/products";
+        window.location.href = "/products";
       }
     } catch (error) {
       console.log(error);
