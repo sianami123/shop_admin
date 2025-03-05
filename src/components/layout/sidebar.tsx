@@ -31,8 +31,8 @@ const Sidebar = () => {
       section: "main",
     },
     {
-      title: "Users",
-      path: "/users",
+      title: "Customers",
+      path: "/customers",
       icon: <Users size={20} />,
       section: "main",
     },

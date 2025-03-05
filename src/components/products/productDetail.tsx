@@ -3,7 +3,7 @@ import { useParams } from "react-router";
 import { productsAPI } from "../../api/api";
 import { IProduct } from "../../interfaces/Iproduct";
 import Layout from "../layout/layout";
-import { MdArrowBack, MdStar } from "react-icons/md";
+import { MdAdd, MdArrowBack, MdRemove, MdStar } from "react-icons/md";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -158,9 +158,19 @@ export default function ProductDetail() {
                         : "bg-yellow-100 text-yellow-800"
                     }`}
                   >
-                    {product.stock_quantity !== null
-                      ? `${product.stock_quantity} in stock`
-                      : product.stock_status}
+                    <div className="flex items-center gap-2">
+                      <button className="bg-blue-500 text-white px-2 py-1 rounded-md">
+                        {/* increase stock quantity */}
+                        <MdAdd />
+                      </button>
+                      {product.stock_quantity !== null
+                        ? `${product.stock_quantity} in stock`
+                        : product.stock_status}
+                      <button className="bg-blue-500 text-white px-2 py-1 rounded-md">
+                        {/* decrease stock quantity */}
+                        <MdRemove />
+                      </button>
+                    </div>
                   </span>
                 </div>
               </div>

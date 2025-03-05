@@ -107,3 +107,10 @@ export const ordersAPI = {
     return response;
   },
 };
+
+export const customersAPI = {
+  getCustomers: async () => {
+    const response = await apiClient.get("/wp-json/wc/v3/customers");
+    return response;
+  },
+};
