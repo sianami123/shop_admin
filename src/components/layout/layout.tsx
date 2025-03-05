@@ -15,10 +15,8 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="flex h-screen w-full">
-      <div className="w-[10%]">
-        <Sidebar />
-      </div>
-      <div className="w-full">{children}</div>
+      <Sidebar />
+      <div className="flex-1 overflow-auto">{children}</div>
     </div>
   );
 };
