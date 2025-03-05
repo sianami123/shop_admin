@@ -1,7 +1,6 @@
 import { useNavigate, useLocation } from "react-router";
 import {
   ShoppingCart,
-  Package,
   Users,
   ClipboardList,
   User,
