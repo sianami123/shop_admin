@@ -4,7 +4,6 @@ import Cookies from "js-cookie";
 const Login = () => {
   const handlerLogin = async () => {
     console.log(email, password);
-    // window.location.href = "/products";
     try {
       const response = await authAPI.login({ email, password });
       console.log(response.data.data.jwt);

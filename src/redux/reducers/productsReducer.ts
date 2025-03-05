@@ -6,7 +6,6 @@ const initialState: IProduct[] = [
     title: "test",
     price: 100,
     imageURL: "test",
-    inventory: 10,
     rating: 5,
   },
 ];

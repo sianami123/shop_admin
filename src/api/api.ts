@@ -24,8 +24,6 @@ apiClient.interceptors.request.use((config) => {
 // Add response interceptor for debugging
 apiClient.interceptors.response.use((response) => {
   if (response.status === 401 && response.config.url !== "/users/login") {
-    // localStorage.removeItem("accessToken");
-    // localStorage.removeItem("refreshToken");
     Cookies.remove("accessToken");
     window.location.href = "/login";
   }
@@ -47,7 +45,7 @@ interface LoginResponse {
 export const authAPI = {
   login: async (credentials: LoginCredentials) => {
     const response = await apiClient.post<LoginResponse>(
-      "/?rest_route=/simple-jwt-login/v1/auth",
+      "/wp-json/simple-jwt-login/v1/auth",
       null,
       {
         params: {
@@ -60,8 +58,6 @@ export const authAPI = {
     return response;
   },
   logout: async () => {
-    // localStorage.removeItem("accessToken");
-    // localStorage.removeItem("refreshToken");
     Cookies.remove("accessToken");
   },
 };
@@ -77,17 +73,22 @@ export const productsAPI = {
     console.log(response);
     return response;
   },
-  createProduct: async ({ title, price, imageURL, inventory }: IProduct) => {
+  createProduct: async ({ title, price, imageURL }: IProduct) => {
     try {
       const response = await apiClient.post("/wp-json/wc/v3/products", {
-        title,
-        price,
-        imageURL,
-        inventory,
+        name: title,
+        regular_price: price.toString(),
+        images: imageURL ? [{ src: imageURL }] : [],
+        status: "publish",
       });
       return response;
     } catch (error) {
       console.log(error);
+      throw error;
     }
+  },
+  deleteProduct: async (id: string) => {
+    const response = await apiClient.delete(`/wp-json/wc/v3/products/${id}`);
+    return response;
   },
 };
