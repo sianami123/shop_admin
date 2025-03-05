@@ -73,6 +73,10 @@ export const productsAPI = {
     console.log(response);
     return response;
   },
+  getProductById: async (id: string) => {
+    const response = await apiClient.get(`/wp-json/wc/v3/products/${id}`);
+    return response;
+  },
   createProduct: async ({ title, price, imageURL }: IProduct) => {
     try {
       const response = await apiClient.post("/wp-json/wc/v3/products", {
@@ -89,6 +93,17 @@ export const productsAPI = {
   },
   deleteProduct: async (id: string) => {
     const response = await apiClient.delete(`/wp-json/wc/v3/products/${id}`);
+    return response;
+  },
+};
+
+export const ordersAPI = {
+  getOrders: async () => {
+    const response = await apiClient.get("/wp-json/wc/v3/orders");
+    return response;
+  },
+  getOrderById: async (id: string) => {
+    const response = await apiClient.get(`/wp-json/wc/v3/orders/${id}`);
     return response;
   },
 };

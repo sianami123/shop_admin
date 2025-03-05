@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import Layout from "../layout/layout";
 import { productsAPI } from "../../api/api";
 import { MdDeleteForever, MdOutlineEditNote, MdStar } from "react-icons/md";
-import AddingModal from "../modal/adding_modal";
+import AddingModal from "./adding_modal";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setProducts,
   deleteProduct,
 } from "../../redux/reducers/productsReducer";
 import { IProduct } from "../../interfaces/Iproduct";
-import EditModal from "../modal/edit_modal";
+import EditModal from "./edit_modal";
 
 export default function Products() {
   const [open, setOpen] = useState(false);
@@ -144,7 +144,12 @@ export default function Products() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <div className="flex flex-col gap-1">
+                        <div
+                          onClick={() =>
+                            (window.location.href = `/products/${item.id}`)
+                          }
+                          className="flex flex-col gap-1 cursor-pointer hover:text-blue-500"
+                        >
                           <div className="font-semibold">{item.title}</div>
                           <div className="text-sm text-gray-500">
                             {item.categories?.map((cat) => cat.name).join(", ")}

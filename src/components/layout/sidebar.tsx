@@ -26,21 +26,15 @@ const Sidebar = () => {
       section: "main",
     },
     {
-      title: "Inventory",
-      path: "/inventory",
-      icon: <Package size={20} />,
+      title: "Orders",
+      path: "/orders",
+      icon: <ClipboardList size={20} />,
       section: "main",
     },
     {
       title: "Users",
       path: "/users",
       icon: <Users size={20} />,
-      section: "main",
-    },
-    {
-      title: "Orders",
-      path: "/orders",
-      icon: <ClipboardList size={20} />,
       section: "main",
     },
     {
