@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Layout from "../layout/layout";
 import { productsAPI } from "../../api/api";
-import { MdDeleteForever, MdOutlineEditNote, MdStar } from "react-icons/md";
+import { MdOutlineEditNote, MdStar } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { IProduct } from "../../interfaces/Iproduct";
 import { setProducts } from "../../redux/reducers/productsReducer";
