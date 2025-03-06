@@ -25,6 +25,12 @@ const Sidebar = () => {
       section: "main",
     },
     {
+      title: "Inventory",
+      path: "/inventory",
+      icon: <ClipboardList size={20} />,
+      section: "main",
+    },
+    {
       title: "Orders",
       path: "/orders",
       icon: <ClipboardList size={20} />,

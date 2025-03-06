@@ -104,16 +104,24 @@ export const productsAPI = {
     const response = await apiClient.delete(`/wp-json/wc/v3/products/${id}`);
     return response;
   },
-  increaseQuantity: async (id: string, product: IProduct) => {
-    const response = await apiClient.put(`/wp-json/wc/v3/products/${id}`, {
-      stock_quantity: product.stock_quantity,
+  batchUpdateQuantities: async (
+    quantities: Array<{
+      id: number;
+      stock_quantity: number;
+    }>
+  ) => {
+    // Transform the quantities array into the format WooCommerce expects
+    const updates = quantities.map((item) => ({
+      id: item.id,
+      stock_quantity: item.stock_quantity,
+      manage_stock: true, // Enable stock management for the product
+    }));
+
+    const response = await apiClient.post("/wp-json/wc/v3/products/batch", {
+      update: updates,
     });
-    return response;
-  },
-  decreaseQuantity: async (id: string, product: IProduct) => {
-    const response = await apiClient.put(`/wp-json/wc/v3/products/${id}`, {
-      stock_quantity: product.stock_quantity,
-    });
+
+    console.log("Batch update response:", response);
     return response;
   },
 };
