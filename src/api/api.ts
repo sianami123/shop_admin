@@ -104,6 +104,18 @@ export const productsAPI = {
     const response = await apiClient.delete(`/wp-json/wc/v3/products/${id}`);
     return response;
   },
+  increaseQuantity: async (id: string, product: IProduct) => {
+    const response = await apiClient.put(`/wp-json/wc/v3/products/${id}`, {
+      stock_quantity: product.stock_quantity,
+    });
+    return response;
+  },
+  decreaseQuantity: async (id: string, product: IProduct) => {
+    const response = await apiClient.put(`/wp-json/wc/v3/products/${id}`, {
+      stock_quantity: product.stock_quantity,
+    });
+    return response;
+  },
 };
 
 export const ordersAPI = {
@@ -119,7 +131,22 @@ export const ordersAPI = {
 
 export const customersAPI = {
   getCustomers: async () => {
-    const response = await apiClient.get("/wp-json/wc/v3/customers");
-    return response;
+    try {
+      const response = await apiClient.get("/wp-json/wc/v3/customers", {
+        params: {
+          per_page: 100,
+          role: "all",
+        },
+      });
+      console.log("Customers API Response:", response);
+      return response;
+    } catch (error: any) {
+      console.error("Error fetching customers:", error);
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        console.error("Error status:", error.response.status);
+      }
+      throw error;
+    }
   },
 };

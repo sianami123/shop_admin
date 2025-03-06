@@ -29,6 +29,25 @@ const productsReducer = createSlice({
       );
       return data;
     },
+    increaseQuantity: (state: IProduct[], action: PayloadAction<IProduct>) => {
+      const data = state.map((item) =>
+        item.id === action.payload.id
+          ? { ...item, stock_quantity: action.payload.stock_quantity || 0 + 1 }
+          : item
+      );
+      return data;
+    },
+    decreaseQuantity: (state: IProduct[], action: PayloadAction<IProduct>) => {
+      const data = state.map((item) =>
+        item.id === action.payload.id
+          ? {
+              ...item,
+              stock_quantity: action.payload.stock_quantity || 0 - 1,
+            }
+          : item
+      );
+      return data;
+    },
     deleteProduct: (state: IProduct[], action: PayloadAction<string>) => {
       const data = state.filter((item) => item.id !== action.payload);
       return data;
