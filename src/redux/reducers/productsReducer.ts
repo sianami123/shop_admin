@@ -20,6 +20,15 @@ const productsReducer = createSlice({
     addProduct: (state: IProduct[], action: PayloadAction<IProduct>) => {
       return [...state, action.payload];
     },
+    updateProduct: (
+      state: IProduct[],
+      action: PayloadAction<Partial<IProduct>>
+    ) => {
+      const data = state.map((item) =>
+        item.id === action.payload.id ? { ...item, ...action.payload } : item
+      );
+      return data;
+    },
     deleteProduct: (state: IProduct[], action: PayloadAction<string>) => {
       const data = state.filter((item) => item.id !== action.payload);
       return data;
@@ -27,6 +36,6 @@ const productsReducer = createSlice({
   },
 });
 
-export const { setProducts, addProduct, deleteProduct } =
+export const { setProducts, addProduct, deleteProduct, updateProduct } =
   productsReducer.actions;
 export default productsReducer.reducer;

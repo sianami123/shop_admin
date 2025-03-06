@@ -91,6 +91,15 @@ export const productsAPI = {
       throw error;
     }
   },
+  updateProduct: async (id: string, product: Partial<IProduct>) => {
+    const response = await apiClient.put(
+      `/wp-json/wc/v3/products/${id}`,
+      product
+    );
+    console.log(response);
+    console.log(product);
+    return response;
+  },
   deleteProduct: async (id: string) => {
     const response = await apiClient.delete(`/wp-json/wc/v3/products/${id}`);
     return response;

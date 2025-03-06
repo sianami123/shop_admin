@@ -19,7 +19,6 @@ export default function ProductDetail() {
         setLoading(true);
         const response = await productsAPI.getProductById(id);
 
-        // Transform the response data to match our interface
         const transformedProduct: IProduct = {
           id: response.data.id.toString(),
           title: response.data.name,

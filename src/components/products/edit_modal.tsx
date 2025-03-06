@@ -1,8 +1,9 @@
 import { useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
-import { addProduct } from "../../redux/reducers/productsReducer";
+
 import { productsAPI } from "../../api/api";
 import { IProduct } from "../../interfaces/Iproduct";
+import { updateProduct } from "../../redux/reducers/productsReducer";
 
 interface IEditModalProps {
   isOpen: boolean;
@@ -48,38 +49,46 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
     }
   }, [product]);
 
-  const handleCreateProduct = async () => {
+  const handleUpdateProduct = async (id: string) => {
     try {
-      const response = await productsAPI.createProduct({
-        title,
-        price,
-        imageURL,
-        description,
-        short_description: shortDescription,
-        sku,
-        stock_quantity: stockQuantity,
-        regular_price: regularPrice,
-        sale_price: salePrice,
-        weight,
-        dimensions,
-      });
-      console.log(response);
-      if (response?.status === 201) {
-        dispatch(
-          addProduct({
-            title,
-            price,
-            imageURL,
-            description,
-            short_description: shortDescription,
-            sku,
-            stock_quantity: stockQuantity,
-            regular_price: regularPrice,
-            sale_price: salePrice,
-            weight,
-            dimensions,
-          })
-        );
+      // Create an object to store changed values
+      const changedValues: Partial<IProduct> = {};
+
+      // Compare each field with the original product
+      if (title !== product.title) changedValues.title = title;
+      if (price !== product.price) changedValues.price = price;
+      if (imageURL !== product.imageURL) changedValues.imageURL = imageURL;
+      if (description !== product.description)
+        changedValues.description = description;
+      if (shortDescription !== product.short_description)
+        changedValues.short_description = shortDescription;
+      if (sku !== product.sku) changedValues.sku = sku;
+      if (stockQuantity !== product.stock_quantity)
+        changedValues.stock_quantity = stockQuantity;
+      if (regularPrice !== product.regular_price)
+        changedValues.regular_price = regularPrice;
+      if (salePrice !== product.sale_price)
+        changedValues.sale_price = salePrice;
+      if (weight !== product.weight) changedValues.weight = weight;
+
+      // Check if dimensions have changed
+      if (JSON.stringify(dimensions) !== JSON.stringify(product.dimensions)) {
+        changedValues.dimensions = dimensions;
+      }
+
+      // Only make API call if there are changes
+      if (Object.keys(changedValues).length > 0) {
+        // Add id to changed values
+        changedValues.id = id;
+
+        const response = await productsAPI.updateProduct(id, changedValues);
+        if (response.status === 200) {
+          // Dispatch the update to Redux store
+          dispatch(updateProduct(changedValues));
+          onClose();
+        }
+      } else {
+        console.log("No changes detected");
         onClose();
       }
     } catch (e) {
@@ -282,7 +291,7 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
             Cancel
           </button>
           <button
-            onClick={handleCreateProduct}
+            onClick={() => handleUpdateProduct(product.id!)}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
           >
             Update Product
