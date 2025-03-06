@@ -24,7 +24,39 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
     height: "",
   });
 
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [regularPriceError, setRegularPriceError] = useState<string | null>(null);
+  const [imageURLError, setImageURLError] = useState<string | null>(null);
+  
+  const validateForm = () => {
+    let valid = true;
+    
+    setTitleError(null);
+    setRegularPriceError(null);
+    setImageURLError(null);
+  
+    if (!title) {
+      setTitleError("Product name is required.");
+      valid = false;
+    }
+  
+    if (!regularPrice || isNaN(Number(regularPrice)) || Number(regularPrice) <= 0) {
+      setRegularPriceError("Regular price is required and must be a valid number.");
+      valid = false;
+    }
+  
+    if (!imageURL) {
+      setImageURLError("Image URL is required.");
+      valid = false;
+    }
+  
+    return valid;
+  };
+  
   const handleCreateProduct = async () => {
+    if (!validateForm()) {
+      return;
+    }
     try {
       const response = await productsAPI.createProduct({
         title,
@@ -97,6 +129,7 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
+               {titleError && <p className="text-red-500 text-xs mt-1">{titleError}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -110,6 +143,7 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
                   onChange={(e) => setRegularPrice(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
+                 {regularPriceError && <p className="text-red-500 text-xs mt-1">{regularPriceError}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -218,6 +252,7 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
                   placeholder="via.placeholder.com/150"
                 />
               </div>
+              {imageURLError && <p className="text-red-500 text-xs mt-1">{imageURLError}</p>}
             </div>
 
             <div>

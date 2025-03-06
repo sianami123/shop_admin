@@ -30,7 +30,8 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
   const [dimensions, setDimensions] = useState(
     product.dimensions || { length: "", width: "", height: "" }
   );
-
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  
   useEffect(() => {
     if (product) {
       setTitle(product.title);
@@ -49,7 +50,29 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
     }
   }, [product]);
 
+  const validateFields = () => {
+    const newErrors: { [key: string]: string } = {};
+  
+    if (!title.trim()) {
+      newErrors.title = "Product name is required";
+    }
+    if (!regularPrice.trim()) {
+      newErrors.regularPrice = "Regular price is required";
+    }
+    if (!imageURL.trim()) {
+      newErrors.imageURL = "Image URL is required";
+    }
+  
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+
   const handleUpdateProduct = async (id: string) => {
+    if (!validateFields()) {
+      return;
+    }
+  
     try {
       // Create an object to store changed values
       const changedValues: Partial<IProduct> = {};
@@ -135,6 +158,8 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
+                {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -148,6 +173,8 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
                   onChange={(e) => setRegularPrice(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
+                  {errors.regularPrice && <p className="text-red-500 text-sm mt-1">{errors.regularPrice}</p>}
+
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -255,6 +282,8 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
+              {errors.imageURL && <p className="text-red-500 text-sm mt-1">{errors.imageURL}</p>}
+
             </div>
 
             <div>

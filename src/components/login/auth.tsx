@@ -16,9 +16,21 @@ export default function Auth() {
   const [signupConfirmPassword, setSignupConfirmPassword] = useState(
     "Constant9-Sequester-Relay"
   );
+  ////////////////////////////////////////////// ارورها
+  const [loginError, setLoginError] = useState<string | null>(null);
+const [signupEmailError, setSignupEmailError] = useState<string | null>(null);
+const [signupPasswordError, setSignupPasswordError] = useState<string | null>(null);
+const [signupConfirmPasswordError, setSignupConfirmPasswordError] = useState<string | null>(null);
+
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    setLoginError(null); 
+
+    if (!loginUsername || !loginPassword) {
+      setLoginError("Username and Password are required");
+      return;
+    }
     try {
       const response = await authAPI.login({
         email: loginUsername,
@@ -35,6 +47,19 @@ export default function Auth() {
   }
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
+    setSignupEmailError(null);
+    setSignupPasswordError(null);
+    setSignupConfirmPasswordError(null);
+    if (!signupEmail || !signupPassword || !signupConfirmPassword) {
+      setSignupEmailError("All fields are required");
+      return;
+    }
+  
+    if (signupPassword !== signupConfirmPassword) {
+      setSignupConfirmPasswordError("Passwords do not match");
+      return;
+    }
+  
     console.log(signupEmail, signupPassword, signupConfirmPassword);
     try {
       const response = await authAPI.register({
@@ -56,6 +81,7 @@ export default function Auth() {
               <h2 className="title">Sign in</h2>
               <div className="input-field">
                 <i className="fas fa-user"></i>
+
                 <input
                   type="text"
                   placeholder="Username"
@@ -63,6 +89,7 @@ export default function Auth() {
                   onChange={(e) => setLoginUsername(e.target.value)}
                 />
               </div>
+              {loginError && <p className="error-text">{loginError}</p>}
               <div className="input-field">
                 <i className="fas fa-lock"></i>
                 <input
@@ -96,6 +123,8 @@ export default function Auth() {
                   onChange={(e) => setSignupEmail(e.target.value)}
                 />
               </div>
+              {signupEmailError && <p className="error-text">{signupEmailError}</p>}
+
               <div className="input-field">
                 <i className="fas fa-lock"></i>
                 <input
@@ -105,6 +134,7 @@ export default function Auth() {
                   onChange={(e) => setSignupPassword(e.target.value)}
                 />
               </div>
+              {signupPasswordError && <p className="error-text">{signupPasswordError}</p>}
               <div className="input-field">
                 <i className="fas fa-lock"></i>
                 <input
@@ -114,6 +144,7 @@ export default function Auth() {
                   onChange={(e) => setSignupConfirmPassword(e.target.value)}
                 />
               </div>
+              {signupConfirmPasswordError && <p className="error-text">{signupConfirmPasswordError}</p>}
               <input type="submit" className="btn" value="Sign up" />
               <p className="social-text">Or Sign up with social platforms</p>
               <div className="social-media">

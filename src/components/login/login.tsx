@@ -4,6 +4,14 @@ import Cookies from "js-cookie";
 const Login = () => {
   const handlerLogin = async () => {
     console.log(email, password);
+    if (!email || !password) {
+      setError("Email and Password are required.");
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError("Please enter a valid email.");
+      return;
+    }
     try {
       const response = await authAPI.login({ email, password });
       console.log(response.data.data.jwt);
@@ -19,6 +27,8 @@ const Login = () => {
 
   const [email, setEmail] = useState("sianami123@gmail.com");
   const [password, setPassword] = useState("Constant9-Sequester-Relay");
+  const [error, setError] = useState("");  
+
 
   return (
     <div>
@@ -97,6 +107,9 @@ const Login = () => {
               Login
             </button>
           </form>
+
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+console.log(error);
 
           <div className="mt-6 text-blue-500 text-center">
             <a href="#" className="hover:underline">
