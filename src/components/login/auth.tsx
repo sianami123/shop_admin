@@ -8,9 +8,12 @@ export default function Auth() {
   const [loginPassword, setLoginPassword] = useState(
     "Constant9-Sequester-Relay"
   );
-  const [signupUsername, setSignupUsername] = useState("sianami123");
+
   const [signupEmail, setSignupEmail] = useState("sianami123@gmail.com");
   const [signupPassword, setSignupPassword] = useState(
+    "Constant9-Sequester-Relay"
+  );
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState(
     "Constant9-Sequester-Relay"
   );
 
@@ -32,7 +35,16 @@ export default function Auth() {
   }
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
-    console.log(signupUsername, signupEmail, signupPassword);
+    console.log(signupEmail, signupPassword, signupConfirmPassword);
+    try {
+      const response = await authAPI.register({
+        email: signupEmail,
+        password: signupPassword,
+      });
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (
@@ -76,15 +88,6 @@ export default function Auth() {
             <form className="sign-up-form" onSubmit={handleSignup}>
               <h2 className="title">Sign up</h2>
               <div className="input-field">
-                <i className="fas fa-user"></i>
-                <input
-                  type="text"
-                  placeholder="Username"
-                  value={signupUsername}
-                  onChange={(e) => setSignupUsername(e.target.value)}
-                />
-              </div>
-              <div className="input-field">
                 <i className="fas fa-envelope"></i>
                 <input
                   type="email"
@@ -100,6 +103,15 @@ export default function Auth() {
                   placeholder="Password"
                   value={signupPassword}
                   onChange={(e) => setSignupPassword(e.target.value)}
+                />
+              </div>
+              <div className="input-field">
+                <i className="fas fa-lock"></i>
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  value={signupConfirmPassword}
+                  onChange={(e) => setSignupConfirmPassword(e.target.value)}
                 />
               </div>
               <input type="submit" className="btn" value="Sign up" />

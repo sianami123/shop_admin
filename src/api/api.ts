@@ -54,7 +54,24 @@ export const authAPI = {
         },
       }
     );
-    console.log(response);
+    return response;
+  },
+  register: async (credentials: { email: string; password: string }) => {
+    const response = await apiClient.post(
+      "/wp-json/simple-jwt-login/v1/users",
+      {
+        email: credentials.email,
+        password: credentials.password,
+      }
+    );
+    console.log(response.data);
+    return response;
+  },
+  validateToken: async () => {
+    const response = await apiClient.post(
+      "/wp-json/simple-jwt-login/v1/auth/validate"
+    );
+    console.log(response.data);
     return response;
   },
   logout: async () => {
