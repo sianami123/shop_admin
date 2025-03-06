@@ -10,6 +10,7 @@ import {
   PanelLeft,
 } from "lucide-react";
 import { useState } from "react";
+import { authAPI } from "../../api/api";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -46,12 +47,6 @@ const Sidebar = () => {
       title: "Profile",
       path: "/profile",
       icon: <User size={20} />,
-      section: "account",
-    },
-    {
-      title: "Logout",
-      path: "/logout",
-      icon: <LogOut size={20} />,
       section: "account",
     },
   ];
@@ -147,6 +142,13 @@ const Sidebar = () => {
                 </button>
               </li>
             ))}
+          <button
+            className={`w-full flex items-center gap-3 px-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group`}
+            onClick={() => authAPI.logout()}
+          >
+            <LogOut size={20} className="text-red-500" />
+            {!isCollapsed && <span className="text-red-500">Logout</span>}
+          </button>
         </ul>
       </div>
     </div>

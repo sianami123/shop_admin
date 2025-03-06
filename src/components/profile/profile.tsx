@@ -44,7 +44,9 @@ export default function Profile() {
     const fetchUser = async () => {
       try {
         const response = await authAPI.validateToken();
-        setUserData(response.data);
+        console.log("API Response:", response);
+        console.log("User Data:", response.data);
+        setUserData(response.data.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -64,7 +66,7 @@ export default function Profile() {
     );
   }
 
-  if (!userData) {
+  if (!userData || !userData.user) {
     return (
       <Layout>
         <div className="flex justify-center items-center h-full">

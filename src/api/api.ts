@@ -22,13 +22,25 @@ apiClient.interceptors.request.use((config) => {
 });
 
 // Add response interceptor for debugging
-apiClient.interceptors.response.use((response) => {
-  if (response.status === 401 && response.config.url !== "/users/login") {
-    Cookies.remove("accessToken");
-    window.location.href = "/login";
+apiClient.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    console.error("Response error:", error);
+
+    if (
+      error.response.status === 401 &&
+      !error.config.url?.includes("/login")
+    ) {
+      console.log("Unauthorized access, redirecting to login...");
+      Cookies.remove("accessToken");
+      window.location.href = "/login";
+    }
+
+    return Promise.reject(error);
   }
-  return response;
-});
+);
 
 interface LoginCredentials {
   email: string;
@@ -76,6 +88,7 @@ export const authAPI = {
   },
   logout: async () => {
     Cookies.remove("accessToken");
+    // window.location.href = "/login";
   },
 };
 
@@ -127,7 +140,6 @@ export const productsAPI = {
       stock_quantity: number;
     }>
   ) => {
-    // Transform the quantities array into the format WooCommerce expects
     const updates = quantities.map((item) => ({
       id: item.id,
       stock_quantity: item.stock_quantity,
