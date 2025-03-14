@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { customersAPI } from "../../api/api";
+import { customerAPI } from "../../api/api";
 import Layout from "../layout/layout";
 
 interface CustomerBilling {
@@ -31,7 +31,7 @@ export default function Customers() {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const res = await customersAPI.getCustomers();
+        const res = await customerAPI.getCustomers();
         setCustomers(res.data);
       } catch (err) {
         setError("Failed to fetch customers. Please try again later.");

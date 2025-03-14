@@ -1,32 +1,34 @@
 import Layout from "../layout/layout";
 import { useState, useEffect } from "react";
-import { ordersAPI } from "../../api/api";
+import orderAPI from "../../api/orderAPI";
 
-interface WooOrder {
-  id: number;
-  status: string;
-  total: string;
-  date_created: string;
-  line_items: Array<{
-    id: number;
-    name: string;
-    product_id: number;
-    variation_id: number;
-    quantity: number;
-    image: {
-      src: string;
-    };
-  }>;
+interface OrderDetail {
+  // Add other detail fields as needed
+}
+
+interface Order {
+  id: string;
+  createdAt: string;
+  details: OrderDetail[];
+  discount_percent: number;
+  images: string[];
+  in_stock: number;
+  main_image: string;
+  price: number;
+  product_company_title: string;
+  product_title: string;
 }
 
 export default function Orders() {
-  const [orders, setOrders] = useState<WooOrder[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+
   useEffect(() => {
-    ordersAPI.getOrders().then((res) => {
-      console.log(res.data);
-      setOrders(res.data);
+    orderAPI.getOrders().then((res: any) => {
+      console.log(res.records);
+      setOrders(res.records);
     });
   }, []);
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
@@ -41,51 +43,46 @@ export default function Orders() {
   );
 }
 
-function OrderCard({ orderItem }: { orderItem: WooOrder }) {
+function OrderCard({ orderItem }: { orderItem: Order }) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Order #{orderItem.id}</h2>
         <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800">
-          {orderItem.status}
+          {new Date(orderItem.createdAt).toLocaleDateString()}
         </span>
       </div>
       <div className="space-y-4">
         <div>
-          <h3 className="font-medium mb-2">Items:</h3>
-          <ul className="space-y-2">
-            {orderItem.line_items.map((item) => (
-              <li
-                key={item.id}
-                className="flex justify-between items-center border-b pb-2"
-              >
-                <img
-                  src={item.image.src}
-                  alt={item.name}
-                  className="w-10 h-10 rounded-md"
-                />
-                <div>
-                  <span className="font-medium">{item.name}</span>
-                  <p className="text-sm text-gray-600">
-                    Quantity: {item.quantity}
-                  </p>
-                </div>
-                {item.variation_id > 0 ? (
-                  <span className="text-sm text-gray-500">
-                    Variation: #{item.variation_id}
-                  </span>
-                ) : (
-                  <span className="text-sm text-gray-500">
-                    Variation: #{item.variation_id}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
+          <div className="flex items-center space-x-4 mb-4">
+            <img
+              src={orderItem.main_image}
+              alt={orderItem.product_title}
+              className="w-20 h-20 rounded-md object-cover"
+            />
+            <div>
+              <h3 className="font-medium">{orderItem.product_title}</h3>
+              <p className="text-sm text-gray-600">
+                {orderItem.product_company_title}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-gray-600">In Stock:</span>
+              <span className="ml-2 font-medium">{orderItem.in_stock}</span>
+            </div>
+            <div>
+              <span className="text-gray-600">Discount:</span>
+              <span className="ml-2 font-medium">
+                {orderItem.discount_percent}%
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="flex justify-between items-center pt-2">
-          <span className="font-medium">Total:</span>
-          <span className="text-lg font-semibold">${orderItem.total}</span>
+        <div className="flex justify-between items-center pt-2 border-t">
+          <span className="font-medium">Price:</span>
+          <span className="text-lg font-semibold">${orderItem.price}</span>
         </div>
       </div>
     </div>

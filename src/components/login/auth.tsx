@@ -16,16 +16,19 @@ export default function Auth() {
   const [signupConfirmPassword, setSignupConfirmPassword] = useState(
     "Constant9-Sequester-Relay"
   );
-  ////////////////////////////////////////////// ارورها
-  const [loginError, setLoginError] = useState<string | null>(null);
-const [signupEmailError, setSignupEmailError] = useState<string | null>(null);
-const [signupPasswordError, setSignupPasswordError] = useState<string | null>(null);
-const [signupConfirmPasswordError, setSignupConfirmPasswordError] = useState<string | null>(null);
 
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [signupEmailError, setSignupEmailError] = useState<string | null>(null);
+  const [signupPasswordError, setSignupPasswordError] = useState<string | null>(
+    null
+  );
+  const [signupConfirmPasswordError, setSignupConfirmPasswordError] = useState<
+    string | null
+  >(null);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    setLoginError(null); 
+    setLoginError(null);
 
     if (!loginUsername || !loginPassword) {
       setLoginError("Username and Password are required");
@@ -36,15 +39,16 @@ const [signupConfirmPasswordError, setSignupConfirmPasswordError] = useState<str
         email: loginUsername,
         password: loginPassword,
       });
-      console.log(response.data);
-      if (response.status === 200) {
-        Cookies.set("accessToken", response.data.data.jwt);
+      console.log(response);
+      if (response.accessToken) {
+        Cookies.set("accessToken", response.accessToken);
         window.location.href = "/products";
       }
     } catch (error) {
       console.error(error);
     }
   }
+
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setSignupEmailError(null);
@@ -54,19 +58,20 @@ const [signupConfirmPasswordError, setSignupConfirmPasswordError] = useState<str
       setSignupEmailError("All fields are required");
       return;
     }
-  
+
     if (signupPassword !== signupConfirmPassword) {
       setSignupConfirmPasswordError("Passwords do not match");
       return;
     }
-  
+
     console.log(signupEmail, signupPassword, signupConfirmPassword);
     try {
       const response = await authAPI.register({
         email: signupEmail,
         password: signupPassword,
+        role: "admin",
       });
-      console.log(response.data);
+      console.log(response);
     } catch (error) {
       console.error(error);
     }
@@ -123,7 +128,9 @@ const [signupConfirmPasswordError, setSignupConfirmPasswordError] = useState<str
                   onChange={(e) => setSignupEmail(e.target.value)}
                 />
               </div>
-              {signupEmailError && <p className="error-text">{signupEmailError}</p>}
+              {signupEmailError && (
+                <p className="error-text">{signupEmailError}</p>
+              )}
 
               <div className="input-field">
                 <i className="fas fa-lock"></i>
@@ -134,7 +141,9 @@ const [signupConfirmPasswordError, setSignupConfirmPasswordError] = useState<str
                   onChange={(e) => setSignupPassword(e.target.value)}
                 />
               </div>
-              {signupPasswordError && <p className="error-text">{signupPasswordError}</p>}
+              {signupPasswordError && (
+                <p className="error-text">{signupPasswordError}</p>
+              )}
               <div className="input-field">
                 <i className="fas fa-lock"></i>
                 <input
@@ -144,7 +153,9 @@ const [signupConfirmPasswordError, setSignupConfirmPasswordError] = useState<str
                   onChange={(e) => setSignupConfirmPassword(e.target.value)}
                 />
               </div>
-              {signupConfirmPasswordError && <p className="error-text">{signupConfirmPasswordError}</p>}
+              {signupConfirmPasswordError && (
+                <p className="error-text">{signupConfirmPasswordError}</p>
+              )}
               <input type="submit" className="btn" value="Sign up" />
               <p className="social-text">Or Sign up with social platforms</p>
               <div className="social-media">

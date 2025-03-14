@@ -1,8 +1,12 @@
 import { useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 
-import { productsAPI } from "../../api/api";
-import { IProduct } from "../../interfaces/Iproduct";
+import { productAPI } from "../../api/api";
+import {
+  IProduct,
+  IProductDetail,
+  IProductCreate,
+} from "../../interfaces/Iproduct";
 import { updateProduct } from "../../redux/reducers/productsReducer";
 
 interface IEditModalProps {
@@ -13,105 +17,92 @@ interface IEditModalProps {
 
 function EditModal({ onClose, isOpen, product }: IEditModalProps) {
   const dispatch = useDispatch();
-  const [title, setTitle] = useState(product.title);
+  const [productTitle, setProductTitle] = useState(product.product_title);
+  const [productCompanyTitle, setProductCompanyTitle] = useState(
+    product.product_company_title
+  );
+  const [mainImage, setMainImage] = useState(product.main_image);
+  const [images, setImages] = useState<string[]>(product.images);
   const [price, setPrice] = useState(product.price);
-  const [imageURL, setImageURL] = useState(product.imageURL);
-  const [description, setDescription] = useState(product.description || "");
-  const [shortDescription, setShortDescription] = useState(
-    product.short_description || ""
+  const [inStock, setInStock] = useState(product.in_stock);
+  const [discountPercent, setDiscountPercent] = useState(
+    product.discount_percent
   );
-  const [sku, setSku] = useState(product.sku || "");
-  const [stockQuantity, setStockQuantity] = useState(
-    product.stock_quantity || 0
-  );
-  const [regularPrice, setRegularPrice] = useState(product.regular_price || "");
-  const [salePrice, setSalePrice] = useState(product.sale_price || "");
-  const [weight, setWeight] = useState(product.weight || "");
-  const [dimensions, setDimensions] = useState(
-    product.dimensions || { length: "", width: "", height: "" }
-  );
+  const [details, setDetails] = useState<IProductDetail[]>(product.details);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  
+
   useEffect(() => {
     if (product) {
-      setTitle(product.title);
+      setProductTitle(product.product_title);
+      setProductCompanyTitle(product.product_company_title);
+      setMainImage(product.main_image);
+      setImages(product.images);
       setPrice(product.price);
-      setImageURL(product.imageURL);
-      setDescription(product.description || "");
-      setShortDescription(product.short_description || "");
-      setSku(product.sku || "");
-      setStockQuantity(product.stock_quantity || 0);
-      setRegularPrice(product.regular_price || "");
-      setSalePrice(product.sale_price || "");
-      setWeight(product.weight || "");
-      setDimensions(
-        product.dimensions || { length: "", width: "", height: "" }
-      );
+      setInStock(product.in_stock);
+      setDiscountPercent(product.discount_percent);
+      setDetails(product.details);
     }
   }, [product]);
 
   const validateFields = () => {
     const newErrors: { [key: string]: string } = {};
-  
-    if (!title.trim()) {
-      newErrors.title = "Product name is required";
+
+    if (!productTitle.trim()) {
+      newErrors.productTitle = "Product title is required";
     }
-    if (!regularPrice.trim()) {
-      newErrors.regularPrice = "Regular price is required";
+    if (!productCompanyTitle.trim()) {
+      newErrors.productCompanyTitle = "Company title is required";
     }
-    if (!imageURL.trim()) {
-      newErrors.imageURL = "Image URL is required";
+    if (!mainImage.trim()) {
+      newErrors.mainImage = "Main image URL is required";
     }
-  
+    if (!price || price <= 0) {
+      newErrors.price = "Price must be greater than 0";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleAddDetail = () => {
+    setDetails([...details, { title: "", content: "" }]);
+  };
+
+  const handleDetailChange = (
+    index: number,
+    field: keyof IProductDetail,
+    value: string
+  ) => {
+    const newDetails = [...details];
+    newDetails[index][field] = value;
+    setDetails(newDetails);
+  };
+
+  const handleRemoveDetail = (index: number) => {
+    setDetails(details.filter((_, i) => i !== index));
+  };
 
   const handleUpdateProduct = async (id: string) => {
     if (!validateFields()) {
       return;
     }
-  
+
     try {
-      // Create an object to store changed values
-      const changedValues: Partial<IProduct> = {};
+      const updatedData: IProductCreate = {
+        product_title: productTitle,
+        product_company_title: productCompanyTitle,
+        price: price,
+        main_image: mainImage,
+        images: images,
+        in_stock: inStock,
+        discount_percent: discountPercent,
+        details: details.filter((detail) => detail.title && detail.content),
+      };
 
-      // Compare each field with the original product
-      if (title !== product.title) changedValues.title = title;
-      if (price !== product.price) changedValues.price = price;
-      if (imageURL !== product.imageURL) changedValues.imageURL = imageURL;
-      if (description !== product.description)
-        changedValues.description = description;
-      if (shortDescription !== product.short_description)
-        changedValues.short_description = shortDescription;
-      if (sku !== product.sku) changedValues.sku = sku;
-      if (stockQuantity !== product.stock_quantity)
-        changedValues.stock_quantity = stockQuantity;
-      if (regularPrice !== product.regular_price)
-        changedValues.regular_price = regularPrice;
-      if (salePrice !== product.sale_price)
-        changedValues.sale_price = salePrice;
-      if (weight !== product.weight) changedValues.weight = weight;
-
-      // Check if dimensions have changed
-      if (JSON.stringify(dimensions) !== JSON.stringify(product.dimensions)) {
-        changedValues.dimensions = dimensions;
-      }
-
-      // Only make API call if there are changes
-      if (Object.keys(changedValues).length > 0) {
-        // Add id to changed values
-        changedValues.id = id;
-
-        const response = await productsAPI.updateProduct(id, changedValues);
-        if (response.status === 200) {
-          // Dispatch the update to Redux store
-          dispatch(updateProduct(changedValues));
-          onClose();
-        }
-      } else {
-        console.log("No changes detected");
+      const response = await productAPI.updateProduct(id, updatedData);
+      console.log(response);
+      if (response.createdAt) {
+        dispatch(updateProduct({ id, ...updatedData }));
         onClose();
       }
     } catch (e) {
@@ -123,8 +114,8 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg w-full h-full max-w-3xl overflow-y-auto">
-        <div className="p-6 space-y-6">
+      <div className="bg-white rounded-lg w-full max-w-3xl max-h-[80vh] flex flex-col">
+        <div className="p-6 space-y-6 overflow-y-auto flex-grow">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Edit Product</h2>
             <button
@@ -150,40 +141,92 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product name
+                Product Title
               </label>
               <input
                 type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                value={productTitle}
+                onChange={(e) => setProductTitle(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
-                {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+              {errors.productTitle && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.productTitle}
+                </p>
+              )}
+            </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Company Title
+              </label>
+              <input
+                type="text"
+                value={productCompanyTitle}
+                onChange={(e) => setProductCompanyTitle(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              {errors.productCompanyTitle && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.productCompanyTitle}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Main Image URL
+              </label>
+              <input
+                type="text"
+                value={mainImage}
+                onChange={(e) => setMainImage(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              {errors.mainImage && (
+                <p className="text-red-500 text-xs mt-1">{errors.mainImage}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Additional Images (One URL per line)
+              </label>
+              <textarea
+                value={images.join("\n")}
+                onChange={(e) =>
+                  setImages(
+                    e.target.value.split("\n").filter((url) => url.trim())
+                  )
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                rows={3}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Regular price
+                  Price
                 </label>
                 <input
                   type="number"
-                  value={regularPrice}
-                  onChange={(e) => setRegularPrice(e.target.value)}
+                  value={price}
+                  onChange={(e) => setPrice(Number(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
-                  {errors.regularPrice && <p className="text-red-500 text-sm mt-1">{errors.regularPrice}</p>}
-
+                {errors.price && (
+                  <p className="text-red-500 text-xs mt-1">{errors.price}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sale price
+                  Stock Quantity
                 </label>
                 <input
                   type="number"
-                  value={salePrice}
-                  onChange={(e) => setSalePrice(e.target.value)}
+                  value={inStock}
+                  onChange={(e) => setInStock(Number(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -191,137 +234,80 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                SKU
-              </label>
-              <input
-                type="text"
-                value={sku}
-                onChange={(e) => setSku(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Stock quantity
+                Discount Percentage
               </label>
               <input
                 type="number"
-                value={stockQuantity}
-                onChange={(e) => setStockQuantity(Number(e.target.value))}
+                min="0"
+                max="100"
+                value={discountPercent}
+                onChange={(e) => setDiscountPercent(Number(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Weight (kg)
-              </label>
-              <input
-                type="text"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Length
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-gray-700">
+                  Product Details
                 </label>
-                <input
-                  type="text"
-                  value={dimensions.length}
-                  onChange={(e) =>
-                    setDimensions({ ...dimensions, length: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
+                <button
+                  type="button"
+                  onClick={handleAddDetail}
+                  className="text-blue-600 hover:text-blue-700 text-sm"
+                >
+                  + Add Detail
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Width
-                </label>
-                <input
-                  type="text"
-                  value={dimensions.width}
-                  onChange={(e) =>
-                    setDimensions({ ...dimensions, width: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Height
-                </label>
-                <input
-                  type="text"
-                  value={dimensions.height}
-                  onChange={(e) =>
-                    setDimensions({ ...dimensions, height: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image URL
-              </label>
-              <div className="flex">
-                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                  https://
-                </span>
-                <input
-                  type="text"
-                  value={imageURL}
-                  onChange={(e) => setImageURL(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              {errors.imageURL && <p className="text-red-500 text-sm mt-1">{errors.imageURL}</p>}
-
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Short Description
-              </label>
-              <textarea
-                value={shortDescription}
-                onChange={(e) => setShortDescription(e.target.value)}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Full Description
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
+              {details.map((detail, index) => (
+                <div key={index} className="grid grid-cols-2 gap-4 items-start">
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Title"
+                      value={detail.title}
+                      onChange={(e) =>
+                        handleDetailChange(index, "title", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Content"
+                      value={detail.content}
+                      onChange={(e) =>
+                        handleDetailChange(index, "content", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    {details.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDetail(index)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="px-6 py-4 bg-gray-50 border-t flex justify-end space-x-3 rounded-b-lg">
+        <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+            className="px-4 py-2 text-gray-700 hover:text-gray-900"
           >
             Cancel
           </button>
           <button
-            onClick={() => handleUpdateProduct(product.id!)}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+            onClick={() => handleUpdateProduct(product.id)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
             Update Product
           </button>

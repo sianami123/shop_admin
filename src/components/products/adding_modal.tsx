@@ -1,7 +1,9 @@
 import { useDispatch } from "react-redux";
 import { useState } from "react";
 import { addProduct } from "../../redux/reducers/productsReducer";
-import { productsAPI } from "../../api/api";
+import { productAPI } from "../../api/api";
+import { IProductDetail, IProductCreate } from "../../interfaces/Iproduct";
+
 interface IPropsModal {
   isOpen: boolean;
   onClose: () => void;
@@ -9,80 +11,79 @@ interface IPropsModal {
 
 function AddingModal({ onClose, isOpen }: IPropsModal) {
   const dispatch = useDispatch();
-  const [title, setTitle] = useState("");
-  const [imageURL, setImageURL] = useState("");
-  const [description, setDescription] = useState("");
-  const [shortDescription, setShortDescription] = useState("");
-  const [sku, setSku] = useState("");
-  const [stockQuantity, setStockQuantity] = useState<number>();
-  const [regularPrice, setRegularPrice] = useState("");
-  const [salePrice, setSalePrice] = useState("");
-  const [weight, setWeight] = useState("");
-  const [dimensions, setDimensions] = useState({
-    length: "",
-    width: "",
-    height: "",
-  });
+  const [productTitle, setProductTitle] = useState("");
+  const [productCompanyTitle, setProductCompanyTitle] = useState("");
+  const [mainImage, setMainImage] = useState("");
+  const [images, setImages] = useState<string[]>([]);
+  const [price, setPrice] = useState("");
+  const [inStock, setInStock] = useState<number>(0);
+  const [discountPercent, setDiscountPercent] = useState<number>(0);
+  const [details, setDetails] = useState<IProductDetail[]>([
+    { title: "", content: "" },
+  ]);
 
-  const [titleError, setTitleError] = useState<string | null>(null);
-  const [regularPriceError, setRegularPriceError] = useState<string | null>(null);
-  const [imageURLError, setImageURLError] = useState<string | null>(null);
-  
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
   const validateForm = () => {
-    let valid = true;
-    
-    setTitleError(null);
-    setRegularPriceError(null);
-    setImageURLError(null);
-  
-    if (!title) {
-      setTitleError("Product name is required.");
-      valid = false;
+    const newErrors: { [key: string]: string } = {};
+
+    if (!productTitle) {
+      newErrors.productTitle = "Product title is required";
     }
-  
-    if (!regularPrice || isNaN(Number(regularPrice)) || Number(regularPrice) <= 0) {
-      setRegularPriceError("Regular price is required and must be a valid number.");
-      valid = false;
+    if (!productCompanyTitle) {
+      newErrors.productCompanyTitle = "Company title is required";
     }
-  
-    if (!imageURL) {
-      setImageURLError("Image URL is required.");
-      valid = false;
+    if (!mainImage) {
+      newErrors.mainImage = "Main image is required";
     }
-  
-    return valid;
+    if (!price || isNaN(Number(price)) || Number(price) <= 0) {
+      newErrors.price = "Price must be a valid number greater than 0";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
-  
+
+  const handleAddDetail = () => {
+    setDetails([...details, { title: "", content: "" }]);
+  };
+
+  const handleDetailChange = (
+    index: number,
+    field: keyof IProductDetail,
+    value: string
+  ) => {
+    const newDetails = [...details];
+    newDetails[index][field] = value;
+    setDetails(newDetails);
+  };
+
+  const handleRemoveDetail = (index: number) => {
+    setDetails(details.filter((_, i) => i !== index));
+  };
+
   const handleCreateProduct = async () => {
     if (!validateForm()) {
       return;
     }
-    try {
-      const response = await productsAPI.createProduct({
-        title,
-        price: Number(regularPrice),
-        imageURL,
-        description,
-        short_description: shortDescription,
-      });
 
+    try {
+      const productData: IProductCreate = {
+        product_title: productTitle,
+        product_company_title: productCompanyTitle,
+        price: Number(price),
+        main_image: mainImage,
+        images: images,
+        in_stock: inStock,
+        discount_percent: discountPercent,
+        details: details.filter((detail) => detail.title && detail.content),
+      };
+
+      const response = await productAPI.createProduct(productData);
       console.log(response);
+
       if (response?.status === 201) {
-        dispatch(
-          addProduct({
-            title,
-            price: Number(regularPrice),
-            imageURL,
-            description,
-            short_description: shortDescription,
-            sku,
-            stock_quantity: stockQuantity,
-            regular_price: regularPrice,
-            sale_price: salePrice,
-            weight,
-            dimensions,
-          })
-        );
+        dispatch(addProduct(response.data));
         onClose();
       }
     } catch (e) {
@@ -121,38 +122,92 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product name
+                Product Title
               </label>
               <input
                 type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                value={productTitle}
+                onChange={(e) => setProductTitle(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
-               {titleError && <p className="text-red-500 text-xs mt-1">{titleError}</p>}
+              {errors.productTitle && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.productTitle}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Company Title
+              </label>
+              <input
+                type="text"
+                value={productCompanyTitle}
+                onChange={(e) => setProductCompanyTitle(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              {errors.productCompanyTitle && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.productCompanyTitle}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Main Image URL
+              </label>
+              <input
+                type="text"
+                value={mainImage}
+                onChange={(e) => setMainImage(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              {errors.mainImage && (
+                <p className="text-red-500 text-xs mt-1">{errors.mainImage}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Additional Images (One URL per line)
+              </label>
+              <textarea
+                value={images.join("\n")}
+                onChange={(e) =>
+                  setImages(
+                    e.target.value.split("\n").filter((url) => url.trim())
+                  )
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                rows={3}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Regular price
+                  Price
                 </label>
                 <input
                   type="number"
-                  value={regularPrice}
-                  onChange={(e) => setRegularPrice(e.target.value)}
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
-                 {regularPriceError && <p className="text-red-500 text-xs mt-1">{regularPriceError}</p>}
+                {errors.price && (
+                  <p className="text-red-500 text-xs mt-1">{errors.price}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sale price
+                  Stock Quantity
                 </label>
                 <input
                   type="number"
-                  value={salePrice}
-                  onChange={(e) => setSalePrice(e.target.value)}
+                  value={inStock}
+                  onChange={(e) => setInStock(Number(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -160,137 +215,80 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                SKU
-              </label>
-              <input
-                type="text"
-                value={sku}
-                onChange={(e) => setSku(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Stock quantity
+                Discount Percentage
               </label>
               <input
                 type="number"
-                value={stockQuantity}
-                onChange={(e) => setStockQuantity(Number(e.target.value))}
+                min="0"
+                max="100"
+                value={discountPercent}
+                onChange={(e) => setDiscountPercent(Number(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Weight (kg)
-              </label>
-              <input
-                type="text"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Length
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-gray-700">
+                  Product Details
                 </label>
-                <input
-                  type="text"
-                  value={dimensions.length}
-                  onChange={(e) =>
-                    setDimensions({ ...dimensions, length: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
+                <button
+                  type="button"
+                  onClick={handleAddDetail}
+                  className="text-blue-600 hover:text-blue-700 text-sm"
+                >
+                  + Add Detail
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Width
-                </label>
-                <input
-                  type="text"
-                  value={dimensions.width}
-                  onChange={(e) =>
-                    setDimensions({ ...dimensions, width: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Height
-                </label>
-                <input
-                  type="text"
-                  value={dimensions.height}
-                  onChange={(e) =>
-                    setDimensions({ ...dimensions, height: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image URL
-              </label>
-              <div className="flex">
-                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                  https://
-                </span>
-                <input
-                  type="text"
-                  value={imageURL}
-                  onChange={(e) => setImageURL(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="via.placeholder.com/150"
-                />
-              </div>
-              {imageURLError && <p className="text-red-500 text-xs mt-1">{imageURLError}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Short Description
-              </label>
-              <textarea
-                value={shortDescription}
-                onChange={(e) => setShortDescription(e.target.value)}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Full Description
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
+              {details.map((detail, index) => (
+                <div key={index} className="grid grid-cols-2 gap-4 items-start">
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Title"
+                      value={detail.title}
+                      onChange={(e) =>
+                        handleDetailChange(index, "title", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Content"
+                      value={detail.content}
+                      onChange={(e) =>
+                        handleDetailChange(index, "content", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    {details.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDetail(index)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="px-6 py-4 bg-gray-50 border-t flex justify-end space-x-3 rounded-b-lg">
+        <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+            className="px-4 py-2 text-gray-700 hover:text-gray-900"
           >
             Cancel
           </button>
           <button
             onClick={handleCreateProduct}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
             Create Product
           </button>

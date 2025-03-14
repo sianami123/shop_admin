@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { productsAPI } from "../../api/api";
+import { productAPI } from "../../api/api";
 import { IProduct } from "../../interfaces/Iproduct";
 import Layout from "../layout/layout";
 import { MdAdd, MdArrowBack, MdRemove, MdStar } from "react-icons/md";
@@ -17,25 +17,19 @@ export default function ProductDetail() {
 
       try {
         setLoading(true);
-        const response = await productsAPI.getProductById(id);
-
+        const response = await productAPI.getProductById(id);
+        console.log(response);
         const transformedProduct: IProduct = {
-          id: response.data.id.toString(),
-          title: response.data.name,
-          price: response.data.price ? Number(response.data.price) : 0,
-          imageURL: response.data.images[0]?.src || "",
-          rating: parseFloat(response.data.average_rating) || 0,
-          description: response.data.description,
-          short_description: response.data.short_description,
-          stock_status: response.data.stock_status,
-          stock_quantity: response.data.stock_quantity,
-          sku: response.data.sku,
-          categories: response.data.categories,
-          status: response.data.status,
-          regular_price: response.data.regular_price,
-          sale_price: response.data.sale_price,
-          weight: response.data.weight,
-          dimensions: response.data.dimensions,
+          id: response.id.toString(),
+          product_title: response.product_title,
+          product_company_title: response.product_company_title,
+          price: response.price ? Number(response.price) : 0,
+          main_image: response.main_image,
+          images: response.images,
+          in_stock: response.in_stock,
+          discount_percent: response.discount_percent,
+          createdAt: response.createdAt,
+          details: response.details,
         };
 
         setProduct(transformedProduct);
@@ -94,10 +88,10 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Image */}
           <div className="flex justify-center items-start">
-            {product.imageURL ? (
+            {product.main_image ? (
               <img
-                src={product.imageURL}
-                alt={product.title}
+                src={product.main_image}
+                alt={product.product_title}
                 className="rounded-lg shadow-lg max-w-full h-auto"
               />
             ) : (
@@ -110,17 +104,16 @@ export default function ProductDetail() {
           {/* Product Details */}
           <div className="space-y-6">
             <h1 className="text-3xl font-bold text-gray-900">
-              {product.title}
+              {product.product_title}
             </h1>
 
             <div className="flex items-center space-x-2">
-              <div className="flex items-center">
-                <span className="text-lg font-semibold">{product.rating}</span>
-                <MdStar className="w-5 h-5 text-yellow-500 ml-1" />
-              </div>
               {product.categories && (
                 <span className="text-gray-500">
-                  in {product.categories.map((cat) => cat.name).join(", ")}
+                  in{" "}
+                  {product.categories
+                    .map((cat: { name: string }) => cat.name)
+                    .join(", ")}
                 </span>
               )}
             </div>
@@ -148,25 +141,15 @@ export default function ProductDetail() {
                   Stock Status
                 </h3>
                 <div className="mt-1">
-                  <span
-                    className={`px-3 py-1 rounded-md inline-flex items-center ${
-                      product.stock_status === "instock"
-                        ? "bg-green-100 text-green-800"
-                        : product.stock_status === "outofstock"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
+                  <span className="px-3 py-1 rounded-md inline-flex items-center">
                     <div className="flex items-center gap-2">
                       <button className="bg-blue-500 text-white px-2 py-1 rounded-md">
-                        {/* increase stock quantity */}
                         <MdAdd />
                       </button>
-                      {product.stock_quantity !== null
-                        ? `${product.stock_quantity} in stock`
-                        : product.stock_status}
+                      {product.in_stock !== null
+                        ? `${product.in_stock} in stock`
+                        : product.in_stock}
                       <button className="bg-blue-500 text-white px-2 py-1 rounded-md">
-                        {/* decrease stock quantity */}
                         <MdRemove />
                       </button>
                     </div>

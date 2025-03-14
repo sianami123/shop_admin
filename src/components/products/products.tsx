@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Layout from "../layout/layout";
-import { productsAPI } from "../../api/api";
-import { MdDeleteForever, MdOutlineEditNote, MdStar } from "react-icons/md";
+import { productAPI } from "../../api/api";
+import { MdDeleteForever, MdOutlineEditNote } from "react-icons/md";
 import AddingModal from "./adding_modal";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -22,29 +22,20 @@ export default function Products() {
   async function fetchProducts() {
     setError(null);
     try {
-      const response = await productsAPI.getProducts();
-      console.log("Products fetched successfully:", response.data);
-      // Transform WooCommerce data to match our interface
-      const transformedProducts = response.data.map((item: any) => ({
-        id: item.id.toString(),
-        title: item.name,
-        price: item.price ? Number(item.price) : 0,
-        imageURL: item.images[0]?.src || "",
-        rating: parseFloat(item.average_rating) || 0,
-        description: item.description,
-        short_description: item.short_description,
-        stock_status: item.stock_status,
-        stock_quantity: item.stock_quantity,
-        sku: item.sku,
-        categories: item.categories,
-        status: item.status,
-        date_created: item.date_created,
-        date_modified: item.date_modified,
-        on_sale: item.on_sale,
-        regular_price: item.regular_price,
-        sale_price: item.sale_price,
-        weight: item.weight,
-        dimensions: item.dimensions,
+      const response = await productAPI.getProducts();
+      console.log("Products fetched successfully:", response);
+      // Transform API data to match our interface
+      const transformedProducts = response.records.map((item: any) => ({
+        id: item.id,
+        product_title: item.product_title,
+        product_company_title: item.product_company_title,
+        price: item.price,
+        main_image: item.main_image,
+        images: item.images,
+        in_stock: item.in_stock,
+        discount_percent: item.discount_percent,
+        createdAt: item.createdAt,
+        details: item.details,
       }));
       dispatch(setProducts(transformedProducts));
     } catch (error: any) {
@@ -68,8 +59,9 @@ export default function Products() {
   };
 
   const handleDeleteProduct = async (id: string) => {
+    if (!id) return;
     try {
-      const res = await productsAPI.deleteProduct(id);
+      const res = await productAPI.deleteProduct(id);
       console.log(res);
       if (res.status === 200) {
         dispatch(deleteProduct(id));
@@ -109,16 +101,16 @@ export default function Products() {
                       Name
                     </th>
                     <th className="min-w-[120px] p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Regular Price
+                      Price
                     </th>
                     <th className="min-w-[120px] p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Stock
                     </th>
                     <th className="min-w-[100px] p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
+                      Company
                     </th>
                     <th className="w-20 p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Rating
+                      Discount
                     </th>
                     <th className="w-24 p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Action
@@ -130,11 +122,11 @@ export default function Products() {
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="p-4">
                         <div className="flex justify-center items-center">
-                          {item.imageURL ? (
+                          {item.main_image ? (
                             <img
                               className="h-20 w-20 p-2 rounded-lg object-cover"
-                              src={item.imageURL}
-                              alt={item.title}
+                              src={item.main_image}
+                              alt={item.product_title}
                             />
                           ) : (
                             <div className="h-20 w-20 p-2 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -150,43 +142,38 @@ export default function Products() {
                           }
                           className="flex flex-col gap-1 cursor-pointer hover:text-blue-500"
                         >
-                          <div className="font-semibold">{item.title}</div>
+                          <div className="font-semibold">
+                            {item.product_title}
+                          </div>
                           <div className="text-sm text-gray-500">
-                            {item.categories?.map((cat) => cat.name).join(", ")}
+                            {item.details
+                              ?.map((detail) => detail.content)
+                              .join(", ")}
                           </div>
                         </div>
                       </td>
                       <td className="p-4 text-right">
-                        $
-                        {item.regular_price ||
-                          (typeof item.price === "number"
-                            ? item.price.toFixed(2)
-                            : "0.00")}
+                        ${item.price.toFixed(2)}
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end">
                           <span
                             className={`px-3 py-1 rounded-md inline-flex items-center ${
-                              item.stock_status === "instock"
+                              item.in_stock > 0
                                 ? "bg-green-100 text-green-800"
-                                : item.stock_status === "outofstock"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
+                                : "bg-red-100 text-red-800"
                             }`}
                           >
-                            {item.stock_quantity !== null
-                              ? `${item.stock_quantity} in stock`
-                              : item.stock_status}
+                            {item.in_stock} in stock
                           </span>
                         </div>
                       </td>
                       <td className="p-4 text-right">
-                        <span className="capitalize">{item.status}</span>
+                        <span>{item.product_company_title}</span>
                       </td>
                       <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <span>{item.rating}</span>
-                          <MdStar className="w-4 h-4 text-yellow-500" />
+                        <div className="flex items-center justify-end">
+                          <span>{item.discount_percent}%</span>
                         </div>
                       </td>
                       <td className="p-4 text-right">
