@@ -4,18 +4,12 @@ import authAPI from "./authAPI";
 import Cookies from "js-cookie";
 export default function Auth() {
   const [isSignUpMode, setIsSignUpMode] = useState(false);
-  const [loginUsername, setLoginUsername] = useState("sianami1234@gmail.com");
-  const [loginPassword, setLoginPassword] = useState(
-    "Constant9-Sequester-Relay"
-  );
+  const [loginUsername, setLoginUsername] = useState("sianami123@gmail.com");
+  const [loginPassword, setLoginPassword] = useState("123");
 
-  const [signupEmail, setSignupEmail] = useState("sianami1234@gmail.com");
-  const [signupPassword, setSignupPassword] = useState(
-    "Constant9-Sequester-Relay"
-  );
-  const [signupConfirmPassword, setSignupConfirmPassword] = useState(
-    "Constant9-Sequester-Relay"
-  );
+  const [signupEmail, setSignupEmail] = useState("sianami123@gmail.com");
+  const [signupPassword, setSignupPassword] = useState("123");
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState("123");
 
   const [loginError, setLoginError] = useState<string | null>(null);
   const [signupEmailError, setSignupEmailError] = useState<string | null>(null);
