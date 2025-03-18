@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "../layout/layout";
-import { authAPI } from "../../api/api";
+import profileAPI from "./profileAPI";
 
 interface JWT {
   expire_in: number;
@@ -43,9 +43,9 @@ export default function Profile() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await authAPI.validateToken();
+        const response = await profileAPI.getProfile();
         console.log("API Response:", response);
-        console.log("User Data:", response.data);
+
         setUserData(response.data.data);
       } catch (error) {
         console.error("Error fetching user data:", error);

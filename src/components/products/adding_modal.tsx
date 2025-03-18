@@ -1,39 +1,41 @@
 import { useDispatch } from "react-redux";
 import { useState } from "react";
 import { addProduct } from "../../redux/reducers/productsReducer";
-import { productAPI } from "../../api/api";
-import { IProductDetail, IProductCreate } from "../../interfaces/Iproduct";
+import productAPI from "./productAPI";
+import { IProduct } from "./Iproduct";
 
 interface IPropsModal {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface IDetail {
+  title: string;
+  content: string;
+}
+
 function AddingModal({ onClose, isOpen }: IPropsModal) {
   const dispatch = useDispatch();
   const [productTitle, setProductTitle] = useState("");
-  const [productCompanyTitle, setProductCompanyTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [mainImage, setMainImage] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [price, setPrice] = useState("");
   const [inStock, setInStock] = useState<number>(0);
   const [discountPercent, setDiscountPercent] = useState<number>(0);
-  const [details, setDetails] = useState<IProductDetail[]>([
-    { title: "", content: "" },
-  ]);
-
+  const [details, setDetails] = useState<IDetail[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!productTitle) {
+    if (!productTitle.trim()) {
       newErrors.productTitle = "Product title is required";
     }
-    if (!productCompanyTitle) {
-      newErrors.productCompanyTitle = "Company title is required";
+    if (!description.trim()) {
+      newErrors.description = "Description is required";
     }
-    if (!mainImage) {
+    if (!mainImage.trim()) {
       newErrors.mainImage = "Main image is required";
     }
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
@@ -50,11 +52,11 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
 
   const handleDetailChange = (
     index: number,
-    field: keyof IProductDetail,
+    field: keyof IDetail,
     value: string
   ) => {
     const newDetails = [...details];
-    newDetails[index][field] = value;
+    newDetails[index] = { ...newDetails[index], [field]: value };
     setDetails(newDetails);
   };
 
@@ -63,31 +65,29 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
   };
 
   const handleCreateProduct = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
-      const productData: IProductCreate = {
-        product_title: productTitle,
-        product_company_title: productCompanyTitle,
+      const newProduct: Omit<IProduct, "id" | "createdAt"> = {
+        title: productTitle,
+        description,
+        mainImage,
+        imageURL: [mainImage, ...images],
         price: Number(price),
-        main_image: mainImage,
-        images: images,
-        in_stock: inStock,
-        discount_percent: discountPercent,
-        details: details.filter((detail) => detail.title && detail.content),
+        stock: inStock,
+        discount: discountPercent,
+        details,
       };
 
-      const response = await productAPI.createProduct(productData);
-      console.log(response);
-
-      if (response?.status === 201) {
-        dispatch(addProduct(response.data));
+      const response = await productAPI.createProduct(newProduct);
+      console.log("response:", response);
+      if (response.createdAt) {
+        dispatch(addProduct(response));
         onClose();
       }
-    } catch (e) {
-      console.log(e);
+    } catch (error) {
+      console.error("Error creating product:", error);
+      setErrors({ submit: "Failed to create product" });
     }
   };
 
@@ -139,17 +139,17 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Company Title
+                Description
               </label>
-              <input
-                type="text"
-                value={productCompanyTitle}
-                onChange={(e) => setProductCompanyTitle(e.target.value)}
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                rows={3}
               />
-              {errors.productCompanyTitle && (
+              {errors.description && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.productCompanyTitle}
+                  {errors.description}
                 </p>
               )}
             </div>
@@ -241,38 +241,48 @@ function AddingModal({ onClose, isOpen }: IPropsModal) {
                 </button>
               </div>
               {details.map((detail, index) => (
-                <div key={index} className="grid grid-cols-2 gap-4 items-start">
-                  <div>
+                <div key={index} className="flex gap-4 items-start">
+                  <div className="flex-1">
                     <input
                       type="text"
-                      placeholder="Title"
                       value={detail.title}
                       onChange={(e) =>
                         handleDetailChange(index, "title", e.target.value)
                       }
+                      placeholder="Detail title"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex-1">
                     <input
                       type="text"
-                      placeholder="Content"
                       value={detail.content}
                       onChange={(e) =>
                         handleDetailChange(index, "content", e.target.value)
                       }
+                      placeholder="Detail content"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
-                    {details.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveDetail(index)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        ×
-                      </button>
-                    )}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveDetail(index)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
                 </div>
               ))}
             </div>

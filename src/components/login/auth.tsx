@@ -1,15 +1,15 @@
 import { useState } from "react";
 import "./auth.css";
-import { authAPI } from "../../api/api";
+import authAPI from "./authAPI";
 import Cookies from "js-cookie";
 export default function Auth() {
   const [isSignUpMode, setIsSignUpMode] = useState(false);
-  const [loginUsername, setLoginUsername] = useState("sianami123@gmail.com");
+  const [loginUsername, setLoginUsername] = useState("sianami1234@gmail.com");
   const [loginPassword, setLoginPassword] = useState(
     "Constant9-Sequester-Relay"
   );
 
-  const [signupEmail, setSignupEmail] = useState("sianami123@gmail.com");
+  const [signupEmail, setSignupEmail] = useState("sianami1234@gmail.com");
   const [signupPassword, setSignupPassword] = useState(
     "Constant9-Sequester-Relay"
   );
@@ -69,7 +69,6 @@ export default function Auth() {
       const response = await authAPI.register({
         email: signupEmail,
         password: signupPassword,
-        role: "admin",
       });
       console.log(response);
     } catch (error) {

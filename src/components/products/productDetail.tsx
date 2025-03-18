@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { productAPI } from "../../api/api";
-import { IProduct } from "../../interfaces/Iproduct";
+import productAPI from "./productAPI";
+import { IProduct } from "./Iproduct";
 import Layout from "../layout/layout";
-import { MdAdd, MdArrowBack, MdRemove, MdStar } from "react-icons/md";
+import { MdAdd, MdArrowBack, MdRemove } from "react-icons/md";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -21,15 +21,15 @@ export default function ProductDetail() {
         console.log(response);
         const transformedProduct: IProduct = {
           id: response.id.toString(),
-          product_title: response.product_title,
-          product_company_title: response.product_company_title,
+          title: response.title,
           price: response.price ? Number(response.price) : 0,
-          main_image: response.main_image,
-          images: response.images,
-          in_stock: response.in_stock,
-          discount_percent: response.discount_percent,
+          imageURL: response.imageURL,
+          stock: response.stock,
+          discount: response.discount,
           createdAt: response.createdAt,
-          details: response.details,
+          description: response.description,
+          mainImage: response.imageURL?.[0] || "",
+          details: response.details || [],
         };
 
         setProduct(transformedProduct);
@@ -88,10 +88,10 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Image */}
           <div className="flex justify-center items-start">
-            {product.main_image ? (
+            {product.imageURL ? (
               <img
-                src={product.main_image}
-                alt={product.product_title}
+                src={product.imageURL[0]}
+                alt={product.title}
                 className="rounded-lg shadow-lg max-w-full h-auto"
               />
             ) : (
@@ -104,33 +104,22 @@ export default function ProductDetail() {
           {/* Product Details */}
           <div className="space-y-6">
             <h1 className="text-3xl font-bold text-gray-900">
-              {product.product_title}
+              {product.title}
             </h1>
 
-            <div className="flex items-center space-x-2">
-              {product.categories && (
-                <span className="text-gray-500">
-                  in{" "}
-                  {product.categories
-                    .map((cat: { name: string }) => cat.name)
-                    .join(", ")}
-                </span>
-              )}
-            </div>
-
             <div className="space-y-2">
-              {product.sale_price ? (
+              {product.price ? (
                 <div className="flex items-center space-x-2">
                   <span className="text-2xl font-bold text-red-600">
-                    ${product.sale_price}
+                    ${product.price}
                   </span>
                   <span className="text-lg text-gray-500 line-through">
-                    ${product.regular_price}
+                    ${product.price}
                   </span>
                 </div>
               ) : (
                 <span className="text-2xl font-bold text-gray-900">
-                  ${product.regular_price || product.price}
+                  ${product.price}
                 </span>
               )}
             </div>
@@ -146,9 +135,9 @@ export default function ProductDetail() {
                       <button className="bg-blue-500 text-white px-2 py-1 rounded-md">
                         <MdAdd />
                       </button>
-                      {product.in_stock !== null
-                        ? `${product.in_stock} in stock`
-                        : product.in_stock}
+                      {product.stock !== null
+                        ? `${product.stock} in stock`
+                        : product.stock}
                       <button className="bg-blue-500 text-white px-2 py-1 rounded-md">
                         <MdRemove />
                       </button>
@@ -157,7 +146,7 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {product.short_description && (
+              {product.description && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
                     Quick Overview
@@ -165,7 +154,7 @@ export default function ProductDetail() {
                   <div
                     className="mt-1 text-gray-600"
                     dangerouslySetInnerHTML={{
-                      __html: product.short_description,
+                      __html: product.description,
                     }}
                   />
                 </div>
@@ -183,34 +172,14 @@ export default function ProductDetail() {
                 </div>
               )}
 
-              {product.sku && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">SKU</h3>
-                  <p className="mt-1 text-gray-600">{product.sku}</p>
-                </div>
-              )}
-
-              {product.weight && (
+              {product.discount && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Weight
+                    Discount
                   </h3>
-                  <p className="mt-1 text-gray-600">{product.weight} kg</p>
+                  <p className="mt-1 text-gray-600">{product.discount}%</p>
                 </div>
               )}
-
-              {product.dimensions &&
-                Object.values(product.dimensions).some((dim) => dim) && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Dimensions
-                    </h3>
-                    <p className="mt-1 text-gray-600">
-                      {product.dimensions.length} × {product.dimensions.width} ×{" "}
-                      {product.dimensions.height} cm
-                    </p>
-                  </div>
-                )}
             </div>
           </div>
         </div>

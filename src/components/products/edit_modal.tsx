@@ -1,12 +1,8 @@
 import { useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 
-import { productAPI } from "../../api/api";
-import {
-  IProduct,
-  IProductDetail,
-  IProductCreate,
-} from "../../interfaces/Iproduct";
+import productAPI from "./productAPI";
+import { IProduct } from "./Iproduct";
 import { updateProduct } from "../../redux/reducers/productsReducer";
 
 interface IEditModalProps {
@@ -15,43 +11,46 @@ interface IEditModalProps {
   product: IProduct;
 }
 
+interface IDetail {
+  title: string;
+  content: string;
+}
+
 function EditModal({ onClose, isOpen, product }: IEditModalProps) {
   const dispatch = useDispatch();
-  const [productTitle, setProductTitle] = useState(product.product_title);
-  const [productCompanyTitle, setProductCompanyTitle] = useState(
-    product.product_company_title
+  const [title, setTitle] = useState(product.title);
+  const [description, setDescription] = useState(product.description);
+  const [mainImage, setMainImage] = useState(product.mainImage);
+  const [images, setImages] = useState<string[]>(
+    product.imageURL.filter((img) => img !== product.mainImage)
   );
-  const [mainImage, setMainImage] = useState(product.main_image);
-  const [images, setImages] = useState<string[]>(product.images);
   const [price, setPrice] = useState(product.price);
-  const [inStock, setInStock] = useState(product.in_stock);
-  const [discountPercent, setDiscountPercent] = useState(
-    product.discount_percent
-  );
-  const [details, setDetails] = useState<IProductDetail[]>(product.details);
+  const [stock, setStock] = useState(product.stock);
+  const [discount, setDiscount] = useState(product.discount);
+  const [details, setDetails] = useState<IDetail[]>(product.details || []);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (product) {
-      setProductTitle(product.product_title);
-      setProductCompanyTitle(product.product_company_title);
-      setMainImage(product.main_image);
-      setImages(product.images);
+      setTitle(product.title);
+      setDescription(product.description);
+      setMainImage(product.mainImage);
+      setImages(product.imageURL.filter((img) => img !== product.mainImage));
       setPrice(product.price);
-      setInStock(product.in_stock);
-      setDiscountPercent(product.discount_percent);
-      setDetails(product.details);
+      setStock(product.stock);
+      setDiscount(product.discount);
+      setDetails(product.details || []);
     }
   }, [product]);
 
   const validateFields = () => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!productTitle.trim()) {
-      newErrors.productTitle = "Product title is required";
+    if (!title.trim()) {
+      newErrors.title = "Product title is required";
     }
-    if (!productCompanyTitle.trim()) {
-      newErrors.productCompanyTitle = "Company title is required";
+    if (!description.trim()) {
+      newErrors.description = "Description is required";
     }
     if (!mainImage.trim()) {
       newErrors.mainImage = "Main image URL is required";
@@ -70,11 +69,11 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
 
   const handleDetailChange = (
     index: number,
-    field: keyof IProductDetail,
+    field: keyof IDetail,
     value: string
   ) => {
     const newDetails = [...details];
-    newDetails[index][field] = value;
+    newDetails[index] = { ...newDetails[index], [field]: value };
     setDetails(newDetails);
   };
 
@@ -82,31 +81,34 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
     setDetails(details.filter((_, i) => i !== index));
   };
 
-  const handleUpdateProduct = async (id: string) => {
-    if (!validateFields()) {
-      return;
-    }
+  const handleUpdateProduct = async () => {
+    if (!validateFields()) return;
 
     try {
-      const updatedData: IProductCreate = {
-        product_title: productTitle,
-        product_company_title: productCompanyTitle,
-        price: price,
-        main_image: mainImage,
-        images: images,
-        in_stock: inStock,
-        discount_percent: discountPercent,
-        details: details.filter((detail) => detail.title && detail.content),
+      const updatedProduct: IProduct = {
+        ...product,
+        title,
+        description,
+        mainImage,
+        imageURL: [...images],
+        price,
+        stock,
+        discount,
+        details,
       };
 
-      const response = await productAPI.updateProduct(id, updatedData);
-      console.log(response);
+      const response = await productAPI.updateProduct(
+        product.id,
+        updatedProduct
+      );
+      console.log("response:", response);
       if (response.createdAt) {
-        dispatch(updateProduct({ id, ...updatedData }));
+        dispatch(updateProduct(updatedProduct));
         onClose();
       }
-    } catch (e) {
-      console.log(e);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      setErrors({ submit: "Failed to update product" });
     }
   };
 
@@ -145,30 +147,28 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
               </label>
               <input
                 type="text"
-                value={productTitle}
-                onChange={(e) => setProductTitle(e.target.value)}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
-              {errors.productTitle && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.productTitle}
-                </p>
+              {errors.title && (
+                <p className="text-red-500 text-xs mt-1">{errors.title}</p>
               )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Company Title
+                Description
               </label>
-              <input
-                type="text"
-                value={productCompanyTitle}
-                onChange={(e) => setProductCompanyTitle(e.target.value)}
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                rows={3}
               />
-              {errors.productCompanyTitle && (
+              {errors.description && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.productCompanyTitle}
+                  {errors.description}
                 </p>
               )}
             </div>
@@ -225,8 +225,8 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
                 </label>
                 <input
                   type="number"
-                  value={inStock}
-                  onChange={(e) => setInStock(Number(e.target.value))}
+                  value={stock}
+                  onChange={(e) => setStock(Number(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -240,8 +240,8 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
                 type="number"
                 min="0"
                 max="100"
-                value={discountPercent}
-                onChange={(e) => setDiscountPercent(Number(e.target.value))}
+                value={discount}
+                onChange={(e) => setDiscount(Number(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
@@ -259,39 +259,50 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
                   + Add Detail
                 </button>
               </div>
+
               {details.map((detail, index) => (
-                <div key={index} className="grid grid-cols-2 gap-4 items-start">
-                  <div>
+                <div key={index} className="flex gap-4 items-start">
+                  <div className="flex-1">
                     <input
                       type="text"
-                      placeholder="Title"
                       value={detail.title}
                       onChange={(e) =>
                         handleDetailChange(index, "title", e.target.value)
                       }
+                      placeholder="Detail title"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex-1">
                     <input
                       type="text"
-                      placeholder="Content"
                       value={detail.content}
                       onChange={(e) =>
                         handleDetailChange(index, "content", e.target.value)
                       }
+                      placeholder="Detail content"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
-                    {details.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveDetail(index)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        ×
-                      </button>
-                    )}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveDetail(index)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
                 </div>
               ))}
             </div>
@@ -306,7 +317,7 @@ function EditModal({ onClose, isOpen, product }: IEditModalProps) {
             Cancel
           </button>
           <button
-            onClick={() => handleUpdateProduct(product.id)}
+            onClick={handleUpdateProduct}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
             Update Product

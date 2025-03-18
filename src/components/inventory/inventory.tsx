@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import Layout from "../layout/layout";
-import { productAPI } from "../../api/api";
+import productAPI from "../products/productAPI";
 import { MdOutlineEditNote } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
-import { IProduct } from "../../interfaces/Iproduct";
+import { IProduct } from "../products/Iproduct";
 import {
   setProducts,
   updateProduct,
@@ -38,21 +38,22 @@ export default function Inventory() {
     try {
       const updates = Object.entries(editingProducts).map(([id, quantity]) => ({
         id,
-        in_stock: quantity,
+        stock: quantity,
       }));
 
       // Process each update sequentially
       for (const update of updates) {
         try {
           const response = await productAPI.updateProduct(update.id, {
-            in_stock: update.in_stock,
+            stock: update.stock,
           });
+          console.log("response:", response);
 
-          if (response && response.data) {
+          if (response.createdAt) {
             dispatch(
               updateProduct({
                 id: update.id,
-                in_stock: response.data.in_stock,
+                stock: response.stock,
               })
             );
           }
@@ -66,7 +67,6 @@ export default function Inventory() {
         }
       }
 
-      // Clear editing state after all updates are processed
       setEditingProducts({});
     } catch (err: any) {
       setError("Failed to process updates: " + err.message);
@@ -84,13 +84,13 @@ export default function Inventory() {
       if (response && response.records) {
         const transformedProducts = response.records.map((item: any) => ({
           id: item.id,
-          product_title: item.product_title,
-          product_company_title: item.product_company_title,
+          title: item.title,
+          description: item.description,
           price: item.price,
-          main_image: item.main_image,
-          images: item.images,
-          in_stock: item.in_stock,
-          discount_percent: item.discount_percent,
+          mainImage: item.mainImage,
+          imageURL: item.imageURL,
+          stock: item.stock,
+          discount: item.discount,
           createdAt: item.createdAt,
           details: item.details,
         }));
@@ -149,9 +149,6 @@ export default function Inventory() {
                     <th className="min-w-[120px] p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Stock
                     </th>
-                    <th className="min-w-[100px] p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Company
-                    </th>
                     <th className="w-20 p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Discount
                     </th>
@@ -165,11 +162,11 @@ export default function Inventory() {
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="p-4">
                         <div className="flex justify-center items-center">
-                          {item.main_image ? (
+                          {item.mainImage ? (
                             <img
                               className="h-20 w-20 p-2 rounded-lg object-cover"
-                              src={item.main_image}
-                              alt={item.product_title}
+                              src={item.mainImage}
+                              alt={item.title}
                             />
                           ) : (
                             <div className="h-20 w-20 p-2 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -185,13 +182,9 @@ export default function Inventory() {
                           }
                           className="flex flex-col gap-1 cursor-pointer hover:text-blue-500"
                         >
-                          <div className="font-semibold">
-                            {item.product_title}
-                          </div>
+                          <div className="font-semibold">{item.title}</div>
                           <div className="text-sm text-gray-500">
-                            {item.details
-                              ?.map((detail) => detail.content)
-                              .join(", ")}
+                            {item.description}
                           </div>
                         </div>
                       </td>
@@ -217,22 +210,19 @@ export default function Inventory() {
                           ) : (
                             <span
                               className={`px-3 py-1 rounded-md inline-flex items-center ${
-                                item.in_stock > 0
+                                item.stock > 0
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
                               }`}
                             >
-                              {item.in_stock} in stock
+                              {item.stock} in stock
                             </span>
                           )}
                         </div>
                       </td>
                       <td className="p-4 text-right">
-                        <span>{item.product_company_title}</span>
-                      </td>
-                      <td className="p-4 text-right">
                         <div className="flex items-center justify-end">
-                          <span>{item.discount_percent}%</span>
+                          <span>{item.discount}%</span>
                         </div>
                       </td>
                       <td className="p-4 text-right">
@@ -241,7 +231,7 @@ export default function Inventory() {
                             !updating && (
                               <button
                                 onClick={() =>
-                                  handleEditClick(item.id, item.in_stock)
+                                  handleEditClick(item.id, item.stock)
                                 }
                                 className="p-2 text-blue-600 hover:text-blue-800"
                                 title="Edit quantity"

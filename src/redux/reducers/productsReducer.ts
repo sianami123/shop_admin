@@ -1,12 +1,17 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { IProduct } from "../../interfaces/Iproduct";
+import { IProduct } from "../../components/products/Iproduct";
 const initialState: IProduct[] = [
   {
     id: "1",
     title: "test",
     price: 100,
-    imageURL: "test",
-    rating: 5,
+    imageURL: ["test"],
+    createdAt: new Date().toISOString(),
+    discount: 0,
+    mainImage: "test",
+    description: "test description",
+    stock: 0,
+    details: [],
   },
 ];
 
@@ -32,7 +37,7 @@ const productsReducer = createSlice({
     increaseQuantity: (state: IProduct[], action: PayloadAction<IProduct>) => {
       const data = state.map((item) =>
         item.id === action.payload.id
-          ? { ...item, stock_quantity: action.payload.stock_quantity || 0 + 1 }
+          ? { ...item, stock: (item.stock || 0) + 1 }
           : item
       );
       return data;
@@ -40,10 +45,7 @@ const productsReducer = createSlice({
     decreaseQuantity: (state: IProduct[], action: PayloadAction<IProduct>) => {
       const data = state.map((item) =>
         item.id === action.payload.id
-          ? {
-              ...item,
-              stock_quantity: action.payload.stock_quantity || 0 - 1,
-            }
+          ? { ...item, stock: Math.max((item.stock || 0) - 1, 0) }
           : item
       );
       return data;
@@ -55,6 +57,12 @@ const productsReducer = createSlice({
   },
 });
 
-export const { setProducts, addProduct, deleteProduct, updateProduct } =
-  productsReducer.actions;
+export const {
+  setProducts,
+  addProduct,
+  deleteProduct,
+  updateProduct,
+  increaseQuantity,
+  decreaseQuantity,
+} = productsReducer.actions;
 export default productsReducer.reducer;

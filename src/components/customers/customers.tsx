@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { customerAPI } from "../../api/api";
+import customerAPI from "./customersAPI";
 import Layout from "../layout/layout";
 
 interface CustomerBilling {

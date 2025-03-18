@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IProduct } from "../interfaces/Iproduct";
+import { IProduct } from "../components/products/Iproduct";
 import Cookies from "js-cookie";
 const API_BASE_URL =
   "https://wordpress-x84owsw4g8wswwgcw8sc4c04.callfornia.com/";

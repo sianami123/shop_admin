@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Layout from "../layout/layout";
-import { productAPI } from "../../api/api";
+import productAPI from "./productAPI";
 import { MdDeleteForever, MdOutlineEditNote } from "react-icons/md";
 import AddingModal from "./adding_modal";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,7 +8,7 @@ import {
   setProducts,
   deleteProduct,
 } from "../../redux/reducers/productsReducer";
-import { IProduct } from "../../interfaces/Iproduct";
+import { IProduct } from "./Iproduct";
 import EditModal from "./edit_modal";
 
 export default function Products() {
@@ -19,32 +19,17 @@ export default function Products() {
   const dispatch = useDispatch();
   const products = useSelector((state: any) => state.products);
 
-  async function fetchProducts() {
-    setError(null);
-    try {
-      const response = await productAPI.getProducts();
-      console.log("Products fetched successfully:", response);
-      // Transform API data to match our interface
-      const transformedProducts = response.records.map((item: any) => ({
-        id: item.id,
-        product_title: item.product_title,
-        product_company_title: item.product_company_title,
-        price: item.price,
-        main_image: item.main_image,
-        images: item.images,
-        in_stock: item.in_stock,
-        discount_percent: item.discount_percent,
-        createdAt: item.createdAt,
-        details: item.details,
-      }));
-      dispatch(setProducts(transformedProducts));
-    } catch (error: any) {
-      setError(error.message);
-    }
-  }
-
   useEffect(() => {
-    fetchProducts();
+    productAPI
+      .getProducts()
+      .then((res) => {
+        console.log("products:", res.records);
+        dispatch(setProducts(res.records));
+      })
+      .catch((err) => {
+        console.log("error:", err);
+        setError(err.message);
+      });
   }, []);
 
   const handleEditProduct = (product: IProduct) => {
@@ -63,7 +48,7 @@ export default function Products() {
     try {
       const res = await productAPI.deleteProduct(id);
       console.log(res);
-      if (res.status === 200) {
+      if (res.message === "Record deleted successfully") {
         dispatch(deleteProduct(id));
       }
     } catch (error) {
@@ -98,7 +83,10 @@ export default function Products() {
                       Image
                     </th>
                     <th className="min-w-[200px] p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
+                      Title
+                    </th>
+                    <th className="min-w-[150px] p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Description
                     </th>
                     <th className="min-w-[120px] p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Price
@@ -106,11 +94,11 @@ export default function Products() {
                     <th className="min-w-[120px] p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Stock
                     </th>
-                    <th className="min-w-[100px] p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Company
-                    </th>
                     <th className="w-20 p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Discount
+                    </th>
+                    <th className="min-w-[150px] p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Details
                     </th>
                     <th className="w-24 p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Action
@@ -122,11 +110,11 @@ export default function Products() {
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="p-4">
                         <div className="flex justify-center items-center">
-                          {item.main_image ? (
+                          {item.imageURL && item.imageURL.length > 0 ? (
                             <img
                               className="h-20 w-20 p-2 rounded-lg object-cover"
-                              src={item.main_image}
-                              alt={item.product_title}
+                              src={item.imageURL[0]}
+                              alt={item.title}
                             />
                           ) : (
                             <div className="h-20 w-20 p-2 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -140,40 +128,60 @@ export default function Products() {
                           onClick={() =>
                             (window.location.href = `/products/${item.id}`)
                           }
-                          className="flex flex-col gap-1 cursor-pointer hover:text-blue-500"
+                          className="font-semibold cursor-pointer hover:text-blue-500"
                         >
-                          <div className="font-semibold">
-                            {item.product_title}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {item.details
-                              ?.map((detail) => detail.content)
-                              .join(", ")}
-                          </div>
+                          {item.title}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm text-gray-600 line-clamp-2">
+                          {item.description}
                         </div>
                       </td>
                       <td className="p-4 text-right">
-                        ${item.price.toFixed(2)}
+                        <div className="flex flex-col items-end">
+                          <span className="font-semibold">
+                            ${item.price.toFixed(2)}
+                          </span>
+                          {item.discount > 0 && (
+                            <span className="text-sm text-green-600">
+                              {item.discount}% off
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end">
                           <span
                             className={`px-3 py-1 rounded-md inline-flex items-center ${
-                              item.in_stock > 0
+                              item.stock > 0
                                 ? "bg-green-100 text-green-800"
                                 : "bg-red-100 text-red-800"
                             }`}
                           >
-                            {item.in_stock} in stock
+                            {item.stock} in stock
                           </span>
                         </div>
                       </td>
                       <td className="p-4 text-right">
-                        <span>{item.product_company_title}</span>
-                      </td>
-                      <td className="p-4 text-right">
                         <div className="flex items-center justify-end">
-                          <span>{item.discount_percent}%</span>
+                          <span className="text-orange-600">
+                            {item.discount}%
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm">
+                          {item.details?.map((detail, index) => (
+                            <div key={index} className="flex gap-2">
+                              <span className="font-medium">
+                                {detail.title}:
+                              </span>
+                              <span className="text-gray-600">
+                                {detail.content}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </td>
                       <td className="p-4 text-right">

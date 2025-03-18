@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, ReactNode } from "react";
+import { Outlet } from "react-router-dom";
 import Sidebar from "./sidebar";
 
-type LayoutProps = {
-  children: React.ReactNode;
-};
+interface LayoutProps {
+  children?: ReactNode;
+}
 
 const Layout = ({ children }: LayoutProps) => {
   useEffect(() => {
@@ -16,7 +17,7 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="flex h-screen w-full">
       <Sidebar />
-      <div className="flex-1 overflow-auto">{children}</div>
+      <div className="flex-1 overflow-auto">{children || <Outlet />}</div>
     </div>
   );
 };

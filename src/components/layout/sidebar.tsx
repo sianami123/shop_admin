@@ -10,8 +10,7 @@ import {
   PanelLeft,
 } from "lucide-react";
 import { useState } from "react";
-import { authAPI } from "../../api/api";
-
+import Cookies from "js-cookie";
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -144,7 +143,10 @@ const Sidebar = () => {
             ))}
           <button
             className={`w-full flex items-center gap-3 px-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group`}
-            onClick={() => authAPI.logout()}
+            onClick={() => {
+              Cookies.remove("accessToken");
+              navigate("/login");
+            }}
           >
             <LogOut size={20} className="text-red-500" />
             {!isCollapsed && <span className="text-red-500">Logout</span>}
