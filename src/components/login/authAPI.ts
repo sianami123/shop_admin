@@ -22,6 +22,23 @@ const authAPI = {
   logout: async () => {
     Cookies.remove("accessToken");
   },
+  // Social login functions
+  googleLogin: async () => {
+    const response = await api.get("/api/auth/google");
+    return response.data;
+  },
+  facebookLogin: async () => {
+    const response = await api.get("/api/auth/facebook");
+    return response.data;
+  },
+  twitterLogin: async () => {
+    const response = await api.get("/api/auth/twitter");
+    return response.data;
+  },
+  linkedinLogin: async () => {
+    const response = await api.get("/api/auth/linkedin");
+    return response.data;
+  },
 };
 
 export default authAPI;
