@@ -110,10 +110,10 @@ export default function Products() {
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="p-4">
                         <div className="flex justify-center items-center">
-                          {item.imageURL && item.imageURL.length > 0 ? (
+                          {item.mainImage && item.mainImage.length > 0 ? (
                             <img
                               className="h-20 w-20 p-2 rounded-lg object-cover"
-                              src={item.imageURL[0]}
+                              src={item.mainImage}
                               alt={item.title}
                             />
                           ) : (
